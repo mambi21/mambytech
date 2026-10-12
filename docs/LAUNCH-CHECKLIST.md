@@ -11,7 +11,8 @@ Run `npm run content:check` for the full, line-by-line list.
 - [ ] **Public profiles (optional):** GitHub and LinkedIn URLs, if you want them shown.
 
 ## Services and accounts
-- [ ] **Domain:** confirm that mambytech.com is available, buy it when ready, and set `NEXT_PUBLIC_SITE_URL`.
+- [x] **Domain:** mambytech.com is registered and active on Cloudflare.
+- [ ] **Site URL:** set `NEXT_PUBLIC_SITE_URL=https://mambytech.com` in the Worker's build variables.
 - [ ] **Email delivery:** create a Resend account, verify the sending domain, and provide the inbox address that should receive messages.
-- [ ] **Hosting:** choose a host (e.g. Vercel). Optionally add Upstash Redis for shared rate limiting.
+- [ ] **Hosting:** Cloudflare Workers is chosen and configured in the repository. Still to do: connect the repository in Cloudflare, add the custom domain, and optionally add Upstash Redis for shared rate limiting. See the README's deployment section.
 - [ ] **Privacy:** confirm the retention wording ("kept only as long as needed to respond and follow up") matches how you handle messages.

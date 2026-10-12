@@ -78,8 +78,9 @@ export async function checkRateLimit(ip: string, env: NodeJS.ProcessEnv = proces
   return memoryLimit(clientKey(ip, processSalt));
 }
 
-/** Best-effort client IP from proxy headers set by the hosting platform. */
+/** Best-effort client IP from proxy headers set by the hosting platform. Cloudflare's header wins when present. */
 export function getClientIp(headers: Headers): string {
+  const cloudflare = headers.get("cf-connecting-ip")?.trim();
   const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || headers.get("x-real-ip")?.trim() || "unknown";
+  return cloudflare || forwarded || headers.get("x-real-ip")?.trim() || "unknown";
 }

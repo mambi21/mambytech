@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { getContactConfig } from "@/lib/contact/config";
-import { clientKey, memoryLimit, resetMemoryLimiter } from "@/lib/contact/rate-limit";
+import { clientKey, getClientIp, memoryLimit, resetMemoryLimiter } from "@/lib/contact/rate-limit";
 import { checkSpam, validateContact } from "@/lib/contact/validation";
 
 const valid = { name: "Ada Lovelace", email: "ada@example.com", message: "Hello, I would like to talk about a project." };
@@ -53,6 +53,13 @@ describe("memoryLimit", () => {
 
   it("hashes client keys so raw IPs are not stored", () => {
     expect(clientKey("203.0.113.9", "salt")).not.toContain("203.0.113.9");
+  });
+
+  it("prefers Cloudflare's client IP header, then proxy headers", () => {
+    const headers = new Headers({ "cf-connecting-ip": "203.0.113.1", "x-forwarded-for": "198.51.100.2, 10.0.0.1" });
+    expect(getClientIp(headers)).toBe("203.0.113.1");
+    expect(getClientIp(new Headers({ "x-forwarded-for": "198.51.100.2, 10.0.0.1" }))).toBe("198.51.100.2");
+    expect(getClientIp(new Headers())).toBe("unknown");
   });
 });
 

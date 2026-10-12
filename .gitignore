@@ -9,3 +9,6 @@ next-env.d.ts
 test-results/
 screenshots/
 npm-debug.log*
+.open-next/
+.wrangler/
+.dev.vars*

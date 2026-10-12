@@ -21,6 +21,8 @@ npm run dev:preview            # same, with drafts and unconfirmed content visib
 | `npm test` | Unit tests (content rules, contact validation, spam checks, rate limiting, provider config) |
 | `npm run lint` / `npm run typecheck` | ESLint / TypeScript |
 | `npm run e2e` | Browser checks against a running server; see `scripts/e2e.ts` |
+| `npm run cf:preview` | Build for Cloudflare and serve it locally in the Workers runtime (http://localhost:8787) |
+| `npm run cf:build` / `npm run cf:deploy` | Build for Cloudflare / deploy that build (used by Cloudflare's Git builds) |
 
 **Editing content:** see [docs/CONTENT.md](docs/CONTENT.md).
 
@@ -55,16 +57,35 @@ All settings are environment variables, documented in [.env.example](.env.exampl
 
 Environment variables are read at build time for page content. Rebuild after changing them.
 
-## Deployment (prepared, not published)
+## Deployment: Cloudflare Workers
 
-Any Node host works. Vercel is the simplest:
+The site runs on Cloudflare Workers through the [OpenNext adapter](https://opennext.js.org/cloudflare) (`@opennextjs/cloudflare`). Configuration:
 
-1. Push this repository to a private Git remote, then import it in Vercel.
-2. Add the production environment variables from `.env.example`. Leave `CONTENT_PREVIEW` unset.
-3. Add a free Upstash Redis integration for shared rate limiting.
-4. In Resend, verify the sending domain (DNS records), then set `CONTACT_FROM_EMAIL` on that domain.
-5. Set `HOSTING_PROVIDER_NAME=Vercel` so the privacy page names the host.
-6. Once the domain is owned, set `NEXT_PUBLIC_SITE_URL=https://mambytech.com` and redeploy.
+- `wrangler.jsonc`: the Worker name (`mambytech`), the `nodejs_compat` flag (needed for `node:crypto` and `process.env`) and the Cloudflare Images binding used by `next/image`.
+- `open-next.config.ts`: prerendered pages are served from Workers static assets. Nothing revalidates, so no R2 bucket or KV namespace is needed.
+- `patches/@opennextjs+cloudflare+1.20.10.patch`: the adapter doesn't yet bundle `preview-props.json`, a file Next.js 16.4 added, so every page fails without this patch ([opennextjs-cloudflare#1355](https://github.com/opennextjs/opennextjs-cloudflare/issues/1355)). `patch-package` applies it on every `npm install`. The adapter is pinned to the exact version the patch was made for. When an adapter release includes the fix, upgrade it, then delete the patch and the `postinstall` script.
+
+**Connect the repository** in Cloudflare under Workers & Pages → Create application → Import a repository. Allow access to this repository only.
+
+- Build command: `npm run cf:build`
+- Deploy command: `npm run cf:deploy`
+
+**Environment variables.** Pages are prerendered, so the Contact and Privacy pages read their settings **during the build**, and the contact form reads them again **at runtime**. In the Worker's settings, add each value under *both* Build → Variables and secrets *and* Variables and secrets. Use the secret type for `RESEND_API_KEY` and `UPSTASH_REDIS_REST_TOKEN`.
+
+| Variable | Value |
+| --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | `https://mambytech.com` |
+| `HOSTING_PROVIDER_NAME` | `Cloudflare` |
+| `CONTACT_PROVIDER`, `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` | See `.env.example`. Leave these out until Resend is set up, and the Contact page will say the form is unavailable. |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Recommended. Each Worker instance keeps its own in-memory rate-limit counters. |
+
+Leave `CONTENT_PREVIEW` unset. Rebuild after changing any variable.
+
+**Custom domain:** Worker → Settings → Domains & Routes → Add → Custom Domain → `mambytech.com`, and `www.mambytech.com` if you want it. Cloudflare creates the DNS records and certificate.
+
+**Email:** add the domain in Resend and copy its DNS records into Cloudflare DNS. Once it verifies, set `CONTACT_FROM_EMAIL` on that domain.
+
+**Local check before pushing:** `npm run cf:preview` serves the Cloudflare build at http://localhost:8787. Runtime variables for it go in `.dev.vars` (git-ignored, same format as `.env`). Build-time variables still come from `.env.local`.
 
 An optional private preview deployment can set `CONTENT_PREVIEW=true` for reviewing drafts. It is automatically `noindex`.
 
