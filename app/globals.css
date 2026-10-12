@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Contrast against `paper` (page background):
+ *   ink 14.9:1 · ink-muted 7.3:1 · ink-subtle 5.1:1 · brand 11.3:1 · danger 6.0:1
+ * `field` borders are ≥3:1 for non-text contrast. The terminal stays dark.
+ */
+@theme {
+  --color-paper: #f7f4ee; /* warm off-white page */
+  --color-paper-2: #efebe3; /* quiet panels and footer */
+  --color-white: #ffffff;
+  --color-rule: #d9d2c5; /* hairlines */
+  --color-field: #79807b; /* form control borders */
+  --color-ink: #1c211f; /* charcoal text */
+  --color-ink-muted: #4a524d;
+  --color-ink-subtle: #626a65;
+  --color-brand: #0e3b31; /* forest green, matches the logo */
+  --color-brand-hover: #0a2c25;
+  --color-brand-tint: #e6eee9;
+  --color-danger: #b42318;
+  --color-owner: #7a4a00; /* owner-input / preview markers */
+  --color-owner-bg: #fdf3d8;
+  --color-owner-line: #b7791f;
+
+  --color-term: #111714;
+  --color-term-line: #26302b;
+  --color-term-text: #d6dfda;
+  --color-term-dim: #8d9993;
+  --color-term-prompt: #7fcfa9;
+  --color-term-value: #e8c37a;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    background: var(--color-paper);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem; /* 17px body */
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Anchored headings stay clear of the sticky header. */
+  [id] {
+    scroll-margin-top: 5.5rem;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--color-brand-tint);
+    color: var(--color-ink);
+  }
+}
+
+/* Smooth scrolling only for people who haven't asked for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Type scale. Serif for display headings, sans for everything else. */
+@utility type-display {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+
+@utility type-title {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+@utility type-heading {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+
+@utility type-subheading {
+  font-weight: 600;
+  font-size: 1.1875rem;
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+}
+
+@utility type-lead {
+  font-size: 1.1875rem;
+  line-height: 1.6;
+  color: var(--color-ink-muted);
+}
+
+@utility type-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-subtle);
+}
+
+@utility measure {
+  max-width: 68ch;
+}
+
+@utility text-link {
+  color: var(--color-brand);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in oklab, var(--color-brand) 40%, transparent);
+  transition: text-decoration-color 150ms;
+  &:hover {
+    text-decoration-color: var(--color-brand);
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}

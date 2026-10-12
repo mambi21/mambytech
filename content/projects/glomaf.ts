@@ -1,0 +1,52 @@
+import type { ProjectInput } from "@/lib/content/schema";
+import { needs } from "@/lib/content/owner-input";
+
+/**
+ * DRAFT — Glomaf.
+ *
+ * Glomaf's purpose and implementation have not been provided yet, so almost
+ * everything here is a placeholder. The category below is a temporary guess
+ * listed in ownerChecklist — confirm it before publishing.
+ */
+const project: ProjectInput = {
+  slug: "glomaf",
+  title: "Glomaf",
+  summary: needs("What is Glomaf? One or two sentences on its purpose and who it is for."),
+  problemSummary: needs("One or two sentences: the problem Glomaf solves and for whom."),
+  contributionSummary: needs("One or two sentences: your role in building Glomaf."),
+  category: "Software Projects",
+  technologies: [needs("Languages, frameworks, services and tools Glomaf uses")],
+  status: "unconfirmed",
+  publication: "draft",
+  featured: true,
+  ownerChecklist: [
+    "Confirm the category (currently a placeholder: Software Projects).",
+    "Set `status` honestly — planned, in-progress, completed, maintained or archived.",
+    "Add links (repository, live site, documentation) only if they are public.",
+    "Add screenshots to /public with alt text, width and height.",
+  ],
+  caseStudy: {
+    problem: needs("What problem does Glomaf solve, and for whom? What existed before, and why wasn't it enough?"),
+    role: needs("Your role: founder, sole developer, team member? Which parts did you build?"),
+    architecture: {
+      summary: needs("High-level architecture: front end, back end, data storage, hosting, and external services, and how they connect."),
+    },
+    implementation: [
+      needs("The main features and how they were built."),
+      needs("Notable technical challenges and how you approached them."),
+    ],
+    tradeoffs: [
+      {
+        decision: needs("An important design or technology choice."),
+        rationale: needs("Why you made it and what it cost."),
+      },
+    ],
+    verification: [needs("How Glomaf is tested or validated: automated tests, user testing, monitoring.")],
+    outcomes: [needs("Current results or state of the project. Only include real figures.")],
+    lessons: [needs("What building Glomaf taught you.")],
+  },
+  links: [],
+  media: [],
+};
+
+export default project;
