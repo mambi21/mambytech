@@ -70,6 +70,8 @@ The site runs on Cloudflare Workers through the [OpenNext adapter](https://openn
 - Build command: `npm run cf:build`
 - Deploy command: `npm run cf:deploy`
 
+**Lock file:** Cloudflare installs with `npm ci` on npm 10. npm 11 can write a `package-lock.json` that npm 10 rejects as out of sync. If a Cloudflare build fails at *Installing* that way, regenerate the lock file with `npx npm@10 install`, then commit it.
+
 **Environment variables.** Pages are prerendered, so the Contact and Privacy pages read their settings **during the build**, and the contact form reads them again **at runtime**. In the Worker's settings, add each value under *both* Build → Variables and secrets *and* Variables and secrets. Use the secret type for `RESEND_API_KEY` and `UPSTASH_REDIS_REST_TOKEN`.
 
 | Variable | Value |
