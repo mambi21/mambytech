@@ -28,7 +28,9 @@ const check = (condition: unknown, message: string) => {
 };
 
 const pages = ["/", "/about", "/projects", "/contact", "/privacy"];
-if (MODE === "preview") pages.push("/projects/aws-infrastructure", "/projects/linux-automation", "/projects/glomaf");
+if (MODE === "preview") {
+  pages.push("/projects/aws-infrastructure", "/projects/linux-automation", "/projects/glomaf", "/experience", "/blog", "/blog/rhel-production-patching");
+}
 
 async function axe(page: Page) {
   await page.addScriptTag({ content: axeSource });
@@ -116,12 +118,12 @@ async function main() {
     await context.close();
   }
 
-  // Laptop screen: the hero is short enough that selected work starts above the fold.
+  // Desktop screen: the hero is short enough that the expertise cards start above the fold.
   // Reduced motion: the terminal cursor only blinks when motion is allowed.
   {
     console.log("\nHero and motion");
     for (const reducedMotion of ["no-preference", "reduce"] as const) {
-      const context = await browser.newContext({ viewport: { width: 1366, height: 768 }, reducedMotion });
+      const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion });
       const page = await context.newPage();
       await page.goto(BASE + "/", { waitUntil: "networkidle" });
       const cursor = page.locator("figure pre span.bg-term-prompt");
@@ -129,8 +131,9 @@ async function main() {
       if (reducedMotion === "reduce") {
         check(animation === "none", `terminal cursor is static with reduced motion (${animation})`);
       } else {
-        const top = await page.locator("#work-heading").evaluate((el) => el.getBoundingClientRect().top);
-        check(top < 768 - 80, `selected work starts above the fold at 1366x768 (heading at ${Math.round(top)}px)`);
+        const banner = MODE === "preview" ? 40 : 0;
+        const top = await page.locator('section[aria-labelledby="expertise-heading"] li').first().evaluate((el) => el.getBoundingClientRect().top);
+        check(top - banner < 900 - 40, `expertise cards start above the fold at 1440x900 (at ${Math.round(top)}px)`);
         check(animation !== "none", `terminal cursor blinks when motion is allowed (${animation})`);
         await page.screenshot({ path: `screenshots/${MODE}-laptop-fold.png` });
       }
@@ -148,6 +151,9 @@ async function main() {
     if (MODE === "production") {
       const draft = await page.goto(BASE + "/projects/glomaf");
       check(draft?.status() === 404, "draft project is not published in production");
+      check((await page.goto(BASE + "/blog/rhel-production-patching"))?.status() === 404, "draft post is not published in production");
+      check((await page.goto(BASE + "/blog"))?.status() === 404, "blog is hidden while no post is published");
+      check((await page.goto(BASE + "/experience"))?.status() === 404, "experience is hidden while every entry needs input");
       const sitemap = await (await page.goto(BASE + "/sitemap.xml"))?.text();
       check(sitemap && !sitemap.includes("/projects/glomaf"), "sitemap excludes drafts");
       await page.goto(BASE + "/contact");

@@ -30,7 +30,7 @@ export function OwnerInputMark({ children }: { children: React.ReactNode }) {
 /** Dashed placeholder block shown in preview when something is still needed. */
 export function OwnerPlaceholder({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-sm border border-dashed border-owner-line bg-owner-bg p-5 text-[0.9375rem] text-owner ${className ?? ""}`}>
+    <div className={`rounded-xl border border-dashed border-owner-line bg-owner-bg p-5 text-[0.9375rem] text-owner ${className ?? ""}`}>
       <strong className="block text-xs font-semibold uppercase tracking-wide">Needs owner input</strong>
       <span className="mt-1 block">{children}</span>
     </div>

@@ -1,40 +1,46 @@
 import type { Profile } from "@/lib/content/schema";
 
+/** Widens the cards on an incomplete last row so the four-column grid has no gaps. */
+function lastRowSpan(index: number, count: number) {
+  const remainder = count % 4;
+  if (remainder === 0 || index < count - remainder) return "";
+  if (remainder === 1) return "lg:col-span-4";
+  if (remainder === 2) return "lg:col-span-2";
+  return index === count - 1 ? "lg:col-span-2" : "";
+}
+
 /**
- * Technical focus areas as one panel divided into columns. Unconfirmed
- * skills only exist in preview mode, where they are marked with "?".
+ * Skills grouped by area, as cards of chips. No proficiency bars or
+ * percentages. Unconfirmed skills only exist in preview mode, where they are
+ * marked with "?".
  */
 export function SkillsPanel({ groups }: { groups: Profile["skillGroups"] }) {
   return (
-    <ul className="grid border-y border-rule sm:grid-cols-2 lg:grid-cols-4">
+    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {groups.map((group, index) => (
-        <li
-          key={group.area}
-          className={[
-            "border-rule py-7 sm:px-6",
-            index > 0 ? "border-t sm:border-t-0" : "",
-            index % 2 === 1 ? "sm:border-l" : "sm:pl-0",
-            index >= 2 ? "sm:border-t lg:border-t-0" : "",
-            index > 0 ? "lg:border-l lg:pl-6" : "lg:pl-0",
-          ].join(" ")}
-        >
-          <h3 className="type-subheading">{group.area}</h3>
-          <p className="mt-2 text-[0.9375rem] text-ink-muted">{group.description}</p>
-          {group.items.length > 0 ? (
-            <ul className="mt-4 space-y-1 font-mono text-[0.8125rem]" aria-label={`${group.area} skills`}>
-              {group.items.map((item) => (
-                <li key={item.name} className={item.confirmed ? "text-ink" : "text-owner"}>
-                  {item.name}
-                  {item.confirmed ? null : (
-                    <>
-                      <span aria-hidden="true"> ?</span>
-                      <span className="sr-only"> (unconfirmed)</span>
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : null}
+        <li key={group.area} className={`reveal rounded-2xl border border-rule bg-white p-5 shadow-[var(--shadow-card)] ${lastRowSpan(index, groups.length)}`}>
+          <h3 className="text-[0.9375rem] font-bold tracking-[-0.01em]">{group.area}</h3>
+          <p className="mt-1 text-sm leading-relaxed text-ink-subtle">{group.description}</p>
+          <ul className="mt-4 flex flex-wrap gap-1.5" aria-label={`${group.area} skills`}>
+            {group.items.map((item) => (
+              <li
+                key={item.name}
+                className={
+                  item.confirmed
+                    ? "rounded-md border border-brand/15 bg-brand-tint px-2 py-0.5 text-[0.8125rem] font-medium text-brand"
+                    : "rounded-md border border-dashed border-owner-line bg-owner-bg px-2 py-0.5 text-[0.8125rem] text-owner"
+                }
+              >
+                {item.name}
+                {item.confirmed ? null : (
+                  <>
+                    <span aria-hidden="true"> ?</span>
+                    <span className="sr-only"> (unconfirmed)</span>
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
         </li>
       ))}
     </ul>

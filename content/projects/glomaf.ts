@@ -4,18 +4,19 @@ import { needs } from "@/lib/content/owner-input";
 /**
  * DRAFT — Glomaf.
  *
- * Glomaf's purpose and implementation have not been provided yet, so almost
- * everything here is a placeholder. The category below is a temporary guess
- * listed in ownerChecklist — confirm it before publishing.
+ * Known so far: a marketplace with a Next.js web app and a React Native
+ * (Expo) mobile app, built on Supabase, including authentication, messaging,
+ * and performance work. Everything else is a placeholder. The category below
+ * is a temporary guess listed in ownerChecklist — confirm it before publishing.
  */
 const project: ProjectInput = {
   slug: "glomaf",
-  title: "Glomaf",
-  summary: needs("What is Glomaf? One or two sentences on its purpose and who it is for."),
+  title: "Glomaf Marketplace",
+  summary: needs("What is Glomaf, and who is it for? One or two sentences. Known so far: a marketplace with a Next.js web app and a React Native (Expo) mobile app on Supabase, with authentication and messaging."),
   problemSummary: needs("One or two sentences: the problem Glomaf solves and for whom."),
   contributionSummary: needs("One or two sentences: your role in building Glomaf."),
   category: "Software Projects",
-  technologies: [needs("Languages, frameworks, services and tools Glomaf uses")],
+  technologies: ["Next.js", "React Native", "Expo", "Supabase"],
   status: "unconfirmed",
   publication: "draft",
   featured: true,
@@ -32,8 +33,8 @@ const project: ProjectInput = {
       summary: needs("High-level architecture: front end, back end, data storage, hosting, and external services, and how they connect."),
     },
     implementation: [
-      needs("The main features and how they were built."),
-      needs("Notable technical challenges and how you approached them."),
+      needs("The main features and how they were built: authentication, messaging, listings."),
+      needs("Notable technical challenges and how you approached them, including the performance improvements you made and how you measured them."),
     ],
     tradeoffs: [
       {

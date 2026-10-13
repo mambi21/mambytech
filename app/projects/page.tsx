@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { ProjectRow } from "@/components/projects";
-import { ArrowLink, Container, PageHeader, SectionHeading } from "@/components/ui";
+import { ProjectGrid } from "@/components/projects";
+import { ArrowLink, Container, PageHeader } from "@/components/ui";
 import { getProjects } from "@/lib/content";
-import { projectCategories, projectStatuses } from "@/lib/content/schema";
+import { projectStatuses } from "@/lib/content/schema";
 import { pageMetadata } from "@/lib/metadata";
 import { isPreview } from "@/lib/preview";
 
@@ -23,13 +23,6 @@ const statusHelp: Record<Exclude<keyof typeof projectStatuses, "unconfirmed">, s
 
 export default function ProjectsPage() {
   const projects = getProjects();
-  const groups = projectCategories
-    .map((category) => ({
-      category,
-      id: `category-${category.toLowerCase().replace(/\s+/g, "-")}`,
-      items: projects.filter((project) => project.category === category),
-    }))
-    .filter((group) => group.items.length > 0);
 
   return (
     <>
@@ -40,41 +33,31 @@ export default function ProjectsPage() {
         </p>
       </PageHeader>
 
-      <Container>
+      <Container className="pt-12">
         {isPreview ? (
-          <p className="mb-10 rounded-sm border border-dashed border-owner-line bg-owner-bg px-4 py-3 text-[0.9375rem] text-owner">
+          <p className="mb-10 rounded-xl border border-dashed border-owner-line bg-owner-bg px-4 py-3 text-[0.9375rem] text-owner">
             Preview: draft projects are listed below. They stay out of production until their <code className="font-mono">publication</code> is
             set to <code className="font-mono">&quot;published&quot;</code>.
           </p>
         ) : null}
 
-        {groups.length === 0 ? (
-          <div className="measure border-t border-ink pt-6">
-            <p className="text-ink-muted">
+        {projects.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-field/50 bg-white/60 px-6 py-10 text-center">
+            <p className="mx-auto max-w-md text-ink-muted">
               Case studies are being written up and will be published here once they’re complete.
             </p>
-            <ArrowLink href="/contact" className="mt-5">
+            <ArrowLink href="/contact" className="mt-4">
               Get in touch
             </ArrowLink>
           </div>
         ) : (
-          <div className="space-y-16">
-            {groups.map((group) => (
-              <section key={group.category} aria-labelledby={group.id}>
-                <SectionHeading id={group.id} title={group.category}>
-                  {group.items.length} {group.items.length === 1 ? "project" : "projects"}
-                </SectionHeading>
-                <div className="mt-8">
-                  {group.items.map((project) => (
-                    <ProjectRow key={project.slug} project={project} />
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
+          <>
+            <h2 className="sr-only">All projects</h2>
+            <ProjectGrid projects={projects} />
+          </>
         )}
 
-        <section aria-labelledby="status-heading" className="mt-20 border-t border-rule pt-8">
+        <section aria-labelledby="status-heading" className="mt-20 rounded-2xl border border-rule bg-paper-2/60 p-6 sm:p-8">
           <h2 id="status-heading" className="type-label">
             About the status labels
           </h2>

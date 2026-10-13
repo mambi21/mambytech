@@ -23,9 +23,9 @@ export default function ContactPage() {
         <p>Send a message about a project, a question, or an opportunity. I’ll reply by email.</p>
       </PageHeader>
 
-      <Container>
-        <div className="grid gap-12 border-t border-ink pt-10 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-20">
-          <section aria-label="Contact form" className="max-w-2xl">
+      <Container className="pt-12">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
+          <section aria-label="Contact form" className="rounded-2xl border border-rule bg-white p-6 shadow-[var(--shadow-card)] sm:p-10">
             {available ? (
               <ContactForm />
             ) : (
@@ -42,7 +42,7 @@ export default function ContactPage() {
             )}
           </section>
 
-          <aside aria-label="About your message" className="space-y-8 text-[0.9375rem] lg:border-l lg:border-rule lg:pl-8">
+          <aside aria-label="About your message" className="space-y-8 self-start rounded-2xl border border-rule bg-paper-2/60 p-6 text-[0.9375rem] sm:p-8">
             <div>
               <h2 className="font-semibold">What happens next</h2>
               <p className="mt-2 text-ink-muted">

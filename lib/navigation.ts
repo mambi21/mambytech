@@ -1,13 +1,17 @@
 import type { NavItem } from "@/components/site-nav";
+import { getExperience, getWriting } from "@/lib/content";
 
 /**
- * Primary navigation. Only add destinations that have published content —
- * e.g. add { href: "/writing", label: "Writing" } once the Writing section
- * exists and has posts (see docs/CONTENT.md).
+ * Primary navigation. Experience and Blog only appear once they have content
+ * that's visible in this build, so the menu never leads to an empty page.
  */
-export const primaryNav: NavItem[] = [
-  { href: "/", label: "Home" },
-  { href: "/about", label: "About" },
-  { href: "/projects", label: "Projects" },
-  { href: "/contact", label: "Contact" },
-];
+export function getPrimaryNav(): NavItem[] {
+  return [
+    { href: "/", label: "Home" },
+    { href: "/about", label: "About" },
+    ...(getExperience().length > 0 ? [{ href: "/experience", label: "Experience" }] : []),
+    { href: "/projects", label: "Projects" },
+    ...(getWriting().length > 0 ? [{ href: "/blog", label: "Blog" }] : []),
+    { href: "/contact", label: "Contact" },
+  ];
+}

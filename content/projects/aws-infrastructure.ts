@@ -11,20 +11,19 @@ import { needs } from "@/lib/content/owner-input";
  */
 const project: ProjectInput = {
   slug: "aws-infrastructure",
-  title: "AWS Infrastructure Project",
+  title: "AWS Three-Tier Architecture",
   summary: needs("One or two sentences: what you built on AWS and why it matters."),
   problemSummary: needs("One or two sentences: the problem this AWS infrastructure solved."),
   contributionSummary: needs("One or two sentences: what you personally designed and built."),
   category: "Cloud Infrastructure",
-  technologies: ["AWS", needs("List the AWS services and tools actually used, e.g. VPC, EC2, S3, IAM, CloudFormation/Terraform")],
+  technologies: ["AWS", "VPC", "Public & private subnets", "Load balancing", needs("The compute and database services and any IaC tool actually used, e.g. EC2, RDS, Terraform")],
   status: "unconfirmed",
   publication: "draft",
   featured: true,
   ownerChecklist: [
-    "Give the project a specific title (e.g. what the infrastructure hosts).",
     "Set `status` to planned, in-progress, completed, maintained or archived.",
     "Add a repository or documentation link if one is public.",
-    "Add an architecture diagram image to /public and reference it below.",
+    "Check the drawn three-tier diagram matches the real design (tiers, subnets, load balancer, database), or replace it with your own diagram image.",
   ],
   caseStudy: {
     problem: needs(
@@ -35,6 +34,7 @@ const project: ProjectInput = {
       summary: needs(
         "Describe the architecture: which services are involved, how traffic and data flow between them, how networking (VPC, subnets, security groups) and access (IAM) are arranged.",
       ),
+      drawing: "aws-three-tier",
     },
     implementation: [
       needs("Step 1 — how you set up the foundation (account, networking, identity)."),

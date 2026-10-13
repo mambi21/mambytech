@@ -9,7 +9,7 @@ import { needs } from "@/lib/content/owner-input";
  */
 const project: ProjectInput = {
   slug: "linux-automation",
-  title: "Linux Administration & Automation Project",
+  title: "Linux Operations & Automation",
   summary: needs("One or two sentences: which Linux system(s) you administered or automated, and the result."),
   problemSummary: needs("One or two sentences: the manual or error-prone task this addressed."),
   contributionSummary: needs("One or two sentences: what you configured or automated yourself."),
@@ -19,7 +19,6 @@ const project: ProjectInput = {
   publication: "draft",
   featured: true,
   ownerChecklist: [
-    "Give the project a specific title (e.g. the task it automates).",
     "Confirm the category — Linux or DevOps.",
     "Set `status` to planned, in-progress, completed, maintained or archived.",
     "Add a repository link if the scripts are public (never include secrets or hostnames).",

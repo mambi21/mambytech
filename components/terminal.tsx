@@ -6,7 +6,7 @@
 export function Terminal({ handle, focus, motto }: { handle: string; focus: string[]; motto: string }) {
   const slugs = focus.map((area) => area.toLowerCase().replace(/\s+/g, "-"));
   return (
-    <figure className="overflow-hidden rounded-md bg-term text-term-text shadow-[0_18px_40px_-24px_rgb(17_23_20/0.55)]">
+    <figure className="overflow-hidden rounded-2xl bg-term text-term-text shadow-[0_24px_48px_-20px_rgb(17_23_20/0.6)] ring-1 ring-term-line">
       <div aria-hidden="true" className="flex items-center gap-1.5 border-b border-term-line px-4 py-2.5">
         <span className="size-2.5 rounded-full bg-[#3a4540]" />
         <span className="size-2.5 rounded-full bg-[#3a4540]" />

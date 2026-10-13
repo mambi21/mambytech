@@ -3,7 +3,8 @@
 /*
  * Design tokens. Contrast against `paper` (page background):
  *   ink 14.9:1 · ink-muted 7.3:1 · ink-subtle 5.1:1 · brand 11.3:1 · danger 6.0:1
- * `field` borders are ≥3:1 for non-text contrast. The terminal stays dark.
+ * `field` borders are ≥3:1 for non-text contrast. The terminal palette is
+ * also used for the dark technical visuals (hero diagram, project thumbnails).
  */
 @theme {
   --color-paper: #f7f4ee; /* warm off-white page */
@@ -30,8 +31,11 @@
   --color-term-value: #e8c37a;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
   --font-mono: var(--font-jetbrains), ui-monospace, "Cascadia Code", Consolas, monospace;
+
+  /* Soft, warm elevation for cards. */
+  --shadow-card: 0 1px 2px rgb(28 33 31 / 0.04), 0 8px 24px -12px rgb(28 33 31 / 0.12);
+  --shadow-lift: 0 2px 4px rgb(28 33 31 / 0.05), 0 22px 44px -18px rgb(28 33 31 / 0.28);
 }
 
 @layer base {
@@ -87,28 +91,33 @@
   }
 }
 
-/* Type scale. Serif for display headings, sans for everything else. */
+/* Type scale. Bold, tightly tracked sans headlines; Inter throughout. */
+@utility type-hero {
+  font-weight: 800;
+  font-size: clamp(2.5rem, 1.55rem + 3.9vw, 4.375rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
 @utility type-display {
-  font-family: var(--font-serif);
-  font-weight: 600;
-  font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.25rem);
-  line-height: 1.08;
-  letter-spacing: -0.015em;
+  font-weight: 800;
+  font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.5rem);
+  line-height: 1.06;
+  letter-spacing: -0.03em;
 }
 
 @utility type-title {
-  font-family: var(--font-serif);
-  font-weight: 600;
-  font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.25rem);
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  font-weight: 750;
+  font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.375rem);
+  line-height: 1.12;
+  letter-spacing: -0.025em;
 }
 
 @utility type-heading {
-  font-family: var(--font-serif);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1.5rem;
   line-height: 1.25;
+  letter-spacing: -0.02em;
 }
 
 @utility type-subheading {
@@ -125,9 +134,9 @@
 }
 
 @utility type-label {
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-ink-subtle);
 }
@@ -145,6 +154,50 @@
   transition: text-decoration-color 150ms;
   &:hover {
     text-decoration-color: var(--color-brand);
+  }
+}
+
+/* Hairline grid used behind technical visuals. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, rgb(214 223 218 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(214 223 218 / 0.045) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+@utility bg-grid-light {
+  background-image:
+    linear-gradient(to right, rgb(28 33 31 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(28 33 31 / 0.045) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/*
+ * Scroll reveal: a short fade-and-rise as sections enter the viewport. Pure
+ * CSS (scroll-driven animations), so browsers without support, and visitors
+ * who prefer reduced motion, simply see the content in place.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 30%;
+    }
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+}
+
+/* Data packets travelling along the hero diagram's links. */
+@keyframes flow {
+  to {
+    stroke-dashoffset: -24;
   }
 }
 

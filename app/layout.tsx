@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import { PreviewBanner, SiteFooter, SiteHeader, SkipLink } from "@/components/site-chrome";
 import { isPreview } from "@/lib/preview";
 import { siteUrl } from "@/lib/site-url";
@@ -7,7 +7,6 @@ import "./globals.css";
 
 // Fonts are downloaded at build time and served from this site — no requests to Google at runtime.
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-source-serif", display: "swap" });
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains", display: "swap" });
 
 const description =
@@ -41,7 +40,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${sourceSerif.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="flex min-h-dvh flex-col">
         <SkipLink />
         <PreviewBanner />

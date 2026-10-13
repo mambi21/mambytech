@@ -45,6 +45,9 @@ export const projectStatuses = {
 
 export const projectLinkKinds = ["repository", "live", "documentation", "other"] as const;
 
+/** Labelled architecture diagrams available as code (see components/architecture-diagram.tsx). */
+export const architectureDrawings = ["aws-three-tier"] as const;
+
 export const projectSchema = z
   .object({
     slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase-words-with-hyphens"),
@@ -67,7 +70,12 @@ export const projectSchema = z
     caseStudy: z.object({
       problem: text,
       role: text,
-      architecture: z.object({ summary: text, diagram: mediaSchema.optional() }),
+      architecture: z.object({
+        summary: text,
+        diagram: mediaSchema.optional(),
+        /** A labelled diagram drawn in code, used when there's no diagram image. Pick the one that matches the real design. */
+        drawing: z.enum(architectureDrawings).optional(),
+      }),
       implementation: z.array(text).min(1),
       tradeoffs: z.array(z.object({ decision: text, rationale: text })).min(1),
       verification: z.array(text).min(1),
@@ -121,9 +129,14 @@ export const writingSchema = z
     slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
     title: text,
     summary: text.max(240),
-    publishedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD"),
+    /** Short topic label shown on article cards, e.g. "Linux" or "AWS". */
+    category: text,
+    /** Required once published. Use the real publication date. */
+    publishedOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").optional(),
     tags: z.array(text).default([]),
     publication: z.enum(["draft", "published"]),
+    /** Optional thumbnail. Without one, a category illustration is shown. */
+    cover: mediaSchema.optional(),
     /** Paragraphs and headings, in order. */
     body: z
       .array(
@@ -136,10 +149,15 @@ export const writingSchema = z
       )
       .min(1),
   })
-  .refine(
-    (post) => post.publication !== "published" || !containsOwnerInput(post),
-    "Published writing cannot contain owner-input markers.",
-  );
+  .superRefine((post, ctx) => {
+    if (post.publication !== "published") return;
+    if (containsOwnerInput(post)) {
+      ctx.addIssue({ code: "custom", message: "Published writing cannot contain owner-input markers." });
+    }
+    if (!post.publishedOn) {
+      ctx.addIssue({ code: "custom", path: ["publishedOn"], message: "Published writing needs its publication date." });
+    }
+  });
 
 export type WritingInput = z.input<typeof writingSchema>;
 export type Writing = z.output<typeof writingSchema>;
@@ -150,12 +168,28 @@ export type Writing = z.output<typeof writingSchema>;
 
 const socialLinkSchema = z.object({ label: text, href: httpsUrl });
 
+export const expertiseIcons = ["linux", "cloud", "automation", "reliability"] as const;
+
 export const profileSchema = z.object({
   name: text,
   brand: text,
   tagline: text,
+  /** Professional title shown under the name in the hero. */
+  role: text,
   focusAreas: z.array(text).min(1),
   introduction: text,
+  /** The four expertise cards under the hero. */
+  expertise: z
+    .array(
+      z.object({
+        title: text,
+        description: text,
+        icon: z.enum(expertiseIcons),
+        items: z.array(text).min(1),
+      }),
+    )
+    .min(1)
+    .max(4),
   /** Optional portrait for the About page. Leave undefined until you add a photo to /public. */
   portrait: mediaSchema.optional(),
   /** Optional public links. Leave undefined until confirmed; unset links are hidden. */
@@ -175,6 +209,42 @@ export const profileSchema = z.object({
 });
 
 export type ProfileInput = z.input<typeof profileSchema>;
+
+/* ------------------------------------------------------------------ */
+/* Experience and certifications                                       */
+/* ------------------------------------------------------------------ */
+
+/** "YYYY-MM", "YYYY", or (for `end`) "present". */
+const monthOrYear = z.string().regex(/^\d{4}(-\d{2})?$/, "Use YYYY-MM or YYYY");
+
+/** A role in the career timeline. Shown in production only once it has no owner-input markers. */
+export const experienceSchema = z.object({
+  organization: text,
+  role: text,
+  start: z.union([monthOrYear, text]),
+  end: z.union([monthOrYear, z.literal("present"), text]),
+  location: z.string().optional(),
+  summary: text,
+  highlights: z.array(text).default([]),
+  technologies: z.array(text).default([]),
+});
+
+/** A certification. Optional fields are left out until confirmed; the card shows only what is set. */
+export const certificationSchema = z.object({
+  name: text,
+  /** Short form shown large on the card, e.g. "RHCSA". */
+  abbreviation: text,
+  issuer: text,
+  /** "YYYY-MM" or "YYYY". */
+  issued: monthOrYear.optional(),
+  credentialId: z.string().optional(),
+  verifyUrl: httpsUrl.optional(),
+});
+
+export type ExperienceInput = z.input<typeof experienceSchema>;
+export type Experience = z.output<typeof experienceSchema>;
+export type CertificationInput = z.input<typeof certificationSchema>;
+export type Certification = z.output<typeof certificationSchema>;
 export type Profile = z.output<typeof profileSchema>;
 
 export const aboutSchema = z.object({

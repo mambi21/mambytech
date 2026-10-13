@@ -16,7 +16,7 @@ function isActive(pathname: string, href: string) {
  * small screens. The menu closes on Escape (returning focus to the toggle),
  * on outside click, and after a link is chosen.
  */
-export function SiteNav({ items }: { items: NavItem[] }) {
+export function SiteNav({ items, cta }: { items: NavItem[]; cta?: NavItem }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuId = useId();
@@ -44,8 +44,8 @@ export function SiteNav({ items }: { items: NavItem[] }) {
   }, [open]);
 
   return (
-    <nav aria-label="Primary">
-      <ul className="hidden items-center gap-7 md:flex">
+    <nav aria-label="Primary" className="flex items-center gap-3">
+      <ul className="hidden items-center gap-1 md:flex lg:gap-2">
         {items.map((item) => {
           const active = isActive(pathname, item.href);
           return (
@@ -54,8 +54,9 @@ export function SiteNav({ items }: { items: NavItem[] }) {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cx(
-                  "py-2 text-[0.9375rem] font-medium underline-offset-[6px] transition-colors",
-                  active ? "text-brand underline decoration-2" : "text-ink-muted hover:text-ink",
+                  "relative block rounded-md px-3 py-2 text-[0.9375rem] font-medium transition-colors",
+                  "after:absolute after:inset-x-3 after:-bottom-[0.6rem] after:h-0.5 after:rounded-full after:transition-colors",
+                  active ? "text-brand after:bg-brand" : "text-ink-muted after:bg-transparent hover:bg-paper-2 hover:text-ink",
                 )}
               >
                 {item.label}
@@ -64,11 +65,19 @@ export function SiteNav({ items }: { items: NavItem[] }) {
           );
         })}
       </ul>
+      {cta ? (
+        <Link
+          href={cta.href}
+          className="ml-3 hidden min-h-10 items-center rounded-lg bg-brand px-4 text-[0.9375rem] font-semibold text-paper shadow-[0_6px_16px_-8px_rgb(14_59_49/0.6)] transition-colors hover:bg-brand-hover lg:inline-flex"
+        >
+          {cta.label}
+        </Link>
+      ) : null}
 
       <button
         ref={toggleRef}
         type="button"
-        className="inline-flex size-11 items-center justify-center rounded-md border border-field text-ink transition-colors hover:border-ink md:hidden"
+        className="inline-flex size-11 items-center justify-center rounded-lg border border-field bg-white text-ink transition-colors hover:border-ink md:hidden"
         aria-expanded={open}
         aria-controls={menuId}
         onClick={() => setOpen((value) => !value)}
@@ -85,7 +94,7 @@ export function SiteNav({ items }: { items: NavItem[] }) {
         hidden={!open}
         className="absolute inset-x-0 top-full border-b border-rule bg-paper shadow-[0_12px_24px_-12px_rgb(28_33_31/0.25)] md:hidden"
       >
-        <ul className="mx-auto flex max-w-6xl flex-col px-4 py-3 sm:px-6">
+        <ul className="mx-auto flex max-w-[76rem] flex-col px-4 py-3 sm:px-6">
           {items.map((item) => {
             const active = isActive(pathname, item.href);
             return (
@@ -104,6 +113,17 @@ export function SiteNav({ items }: { items: NavItem[] }) {
               </li>
             );
           })}
+          {cta ? (
+            <li className="pt-3 pb-1">
+              <Link
+                href={cta.href}
+                onClick={() => setOpen(false)}
+                className="flex min-h-12 items-center justify-center rounded-lg bg-brand text-base font-semibold text-paper hover:bg-brand-hover"
+              >
+                {cta.label}
+              </Link>
+            </li>
+          ) : null}
         </ul>
       </div>
     </nav>
