@@ -72,14 +72,13 @@ The site runs on Cloudflare Workers through the [OpenNext adapter](https://openn
 
 **Lock file:** Cloudflare installs with `npm ci` on npm 10. npm 11 can write a `package-lock.json` that npm 10 rejects as out of sync. If a Cloudflare build fails at *Installing* that way, regenerate the lock file with `npx npm@10 install`, then commit it.
 
-**Environment variables.** Pages are prerendered, so the Contact and Privacy pages read their settings **during the build**, and the contact form reads them again **at runtime**. In the Worker's settings, add each value under *both* Build → Variables and secrets *and* Variables and secrets. Use the secret type for `RESEND_API_KEY` and `UPSTASH_REDIS_REST_TOKEN`.
+**Environment variables.** Pages are prerendered, so settings that change page content are read **during the build**.
 
-| Variable | Value |
-| --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | `https://mambytech.com` |
-| `HOSTING_PROVIDER_NAME` | `Cloudflare` |
-| `CONTACT_PROVIDER`, `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` | See `.env.example`. Leave these out until Resend is set up, and the Contact page will say the form is unavailable. |
-| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Recommended. Each Worker instance keeps its own in-memory rate-limit counters. |
+- `NEXT_PUBLIC_SITE_URL` and `HOSTING_PROVIDER_NAME` are public, and they're committed in `.env.production`, which `next build` reads. Your local `.env.local` takes precedence, so local builds keep using localhost.
+- Contact and rate-limit settings are read during the build (by the Contact and Privacy pages) **and** at runtime (by the contact form). Add them in the Worker's settings under *both* Build → Variables and secrets *and* Variables and secrets, using the **secret** type for all of them.
+  - `npm run cf:deploy` (`wrangler deploy`) removes plain-text runtime variables that aren't in `wrangler.jsonc`, but it keeps secrets.
+  - The settings are `CONTACT_PROVIDER`, `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL`, and optionally `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. Upstash is recommended because each Worker instance keeps its own in-memory rate-limit counters.
+  - Leave them out until Resend is set up, and the Contact page will say the form is unavailable.
 
 Leave `CONTENT_PREVIEW` unset. Rebuild after changing any variable.
 
