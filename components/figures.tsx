@@ -120,8 +120,8 @@ function Step({ x, y, n, fill = brand, color = paper }: { x: number; y: number; 
 /* ------------------------------------------------------------------ */
 
 const layers: Array<{ name: string; tools: string[] }> = [
-  { name: "Workloads", tools: ["Docker / Kubernetes"] },
-  { name: "Automation & CI/CD", tools: ["Ansible / Bash / Python", "GitHub Actions"] },
+  { name: "Workloads", tools: ["Docker / Kubernetes (EKS)"] },
+  { name: "Automation & CI/CD", tools: ["Ansible / Bash / Python", "Jenkins / GitHub Actions"] },
   { name: "Infrastructure as code", tools: ["Terraform"] },
   { name: "Cloud network & compute", tools: ["AWS: VPC / EC2 / IAM"] },
   { name: "Operating system", tools: ["Linux: RHEL / Ubuntu"] },
@@ -242,7 +242,7 @@ export function StackFigure({ className }: { className?: string }) {
       caption="The layers I work across, from the operating system up to the workloads it runs, with the tools I use at each. Monitoring and incident response run through all of them."
     >
       <Responsive
-        label="Exploded diagram of five layers. From the bottom: operating system (Linux: RHEL, Ubuntu); cloud network and compute (AWS: VPC, EC2, IAM); infrastructure as code (Terraform); automation and CI/CD (Ansible, Bash, Python, GitHub Actions); workloads (Docker, Kubernetes). Monitoring and incident response span every layer."
+        label="Exploded diagram of five layers. From the bottom: operating system (Linux: RHEL, Ubuntu); cloud network and compute (AWS: VPC, EC2, IAM); infrastructure as code (Terraform); automation and CI/CD (Ansible, Bash, Python, Jenkins, GitHub Actions); workloads (Docker, Kubernetes on EKS). Monitoring and incident response span every layer."
         wide={<StackDrawing />}
         compact={<StackDrawing compact />}
       />

@@ -31,7 +31,7 @@ export function CapabilitiesIndex({ capabilities, projects }: { capabilities: Pr
                 <span className="type-subheading text-[1.25rem] [font-stretch:92%]">{area.area}</span>
               </h3>
               <p className="col-span-12 pl-10 text-ink-muted lg:col-span-4 lg:pl-0">{area.summary}</p>
-              <ul className="type-mono col-span-12 flex flex-wrap gap-x-4 gap-y-0.5 pl-10 lg:col-span-3 lg:block lg:pl-0" aria-label={`${area.area} tools`}>
+              <ul className="type-mono col-span-12 flex flex-wrap content-start gap-x-4 gap-y-0.5 pl-10 lg:col-span-3 lg:pl-0" aria-label={`${area.area} tools`}>
                 {area.tools.map((tool) => (
                   <li key={tool.name} className={tool.confirmed ? "text-ink" : "text-owner"}>
                     {tool.name}
