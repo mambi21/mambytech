@@ -29,7 +29,7 @@ const check = (condition: unknown, message: string) => {
 
 const pages = ["/", "/about", "/projects", "/contact", "/privacy"];
 if (MODE === "preview") {
-  pages.push("/projects/aws-infrastructure", "/projects/linux-automation", "/projects/glomaf", "/experience", "/blog", "/blog/rhel-production-patching");
+  pages.push("/projects/aws-infrastructure", "/projects/linux-automation", "/projects/glomaf", "/blog", "/blog/rhel-production-patching");
 }
 
 async function axe(page: Page) {
@@ -158,7 +158,7 @@ async function main() {
       check((await page.getByRole("link", { name: /Read the case study/ }).count()) === 0, "no case-study links for unpublished projects");
       check((await page.goto(BASE + "/blog/rhel-production-patching"))?.status() === 404, "draft post is not published in production");
       check((await page.goto(BASE + "/blog"))?.status() === 404, "blog is hidden while no post is published");
-      check((await page.goto(BASE + "/experience"))?.status() === 404, "experience is hidden while every entry needs input");
+      check((await page.goto(BASE + "/experience"))?.status() === 404, "no experience page (timeline intentionally empty)");
       const sitemap = await (await page.goto(BASE + "/sitemap.xml"))?.text();
       check(sitemap && !sitemap.includes("/projects/glomaf"), "sitemap excludes drafts");
       await page.goto(BASE + "/contact");

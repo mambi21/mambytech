@@ -104,17 +104,6 @@ function Arrowhead({ id, color }: { id: string; color: string }) {
   );
 }
 
-function Step({ x, y, n, fill = brand, color = paper }: { x: number; y: number; n: number; fill?: string; color?: string }) {
-  return (
-    <g>
-      <circle cx={x} cy={y} r="10" fill={fill} />
-      <text x={x} y={y + 3.8} textAnchor="middle" fill={color} fontSize="11" className="font-mono">
-        {n}
-      </text>
-    </g>
-  );
-}
-
 /* ------------------------------------------------------------------ */
 /* Fig. 00 — the stack (home hero)                                     */
 /* ------------------------------------------------------------------ */
@@ -251,152 +240,287 @@ export function StackFigure({ className }: { className?: string }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* AWS diagram notation                                                */
+/* ------------------------------------------------------------------ */
+
+/*
+ * Group containers and icons follow AWS's architecture-diagram conventions,
+ * using the official AWS Architecture Icons (public/aws-icons, from the
+ * 07/31/2026 asset package). The AWS colours appear only inside these figures.
+ */
+const aws = {
+  squid: "#232F3E",
+  teal: "#00A4A6",
+  purple: "#8C4FFF",
+  green: "#7AA116",
+  greenFill: "#F2F6E8",
+  tealFill: "#E6F6F7",
+  orange: "#ED7100",
+  red: "#DD344C",
+  grey: "#7D8998",
+};
+
+type GroupKind = "cloud" | "region" | "vpc" | "public" | "private" | "asg" | "generic";
+
+const groupStyle: Record<GroupKind, { stroke: string; fill?: string; dash?: string; icon?: string }> = {
+  cloud: { stroke: aws.squid, icon: "group-aws-cloud" },
+  region: { stroke: aws.teal, dash: "2 3", icon: "group-region" },
+  vpc: { stroke: aws.purple, icon: "group-vpc" },
+  public: { stroke: aws.green, fill: aws.greenFill, icon: "group-public-subnet" },
+  private: { stroke: aws.teal, fill: aws.tealFill, icon: "group-private-subnet" },
+  asg: { stroke: aws.orange, dash: "6 4", icon: "group-auto-scaling" },
+  generic: { stroke: aws.grey, dash: "6 4" },
+};
+
+function Group({
+  kind,
+  x,
+  y,
+  w,
+  h,
+  label,
+  size = 12,
+  icon = 24,
+  color = ink,
+}: {
+  kind: GroupKind;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  label: string;
+  size?: number;
+  icon?: number;
+  color?: string;
+}) {
+  const style = groupStyle[kind];
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} fill={style.fill ?? "none"} stroke={style.stroke} strokeWidth="1.25" strokeDasharray={style.dash} />
+      {style.icon ? <image href={`/aws-icons/${style.icon}.svg`} x={x} y={y} width={icon} height={icon} /> : null}
+      <text x={x + (style.icon ? icon + 7 : 10)} y={y + icon / 2 + size * 0.36} fill={color} fontSize={size} fontWeight={500} className="font-sans">
+        {label}
+      </text>
+    </g>
+  );
+}
+
+/** Availability Zone: dashed teal outline with a centred label, per AWS notation. */
+function Zone({ x, y, w, h, label, size = 12 }: { x: number; y: number; w: number; h: number; label: string; size?: number }) {
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} fill="none" stroke={aws.teal} strokeWidth="1.25" strokeDasharray="6 4" />
+      <text x={x + w / 2} y={y + size + 6} textAnchor="middle" fill={ink} fontSize={size} fontWeight={500} className="font-sans">
+        {label}
+      </text>
+    </g>
+  );
+}
+
+/** Text with a halo in the ground colour, so it stays legible where it crosses lines. */
+function Halo({
+  x,
+  y,
+  children,
+  size = 12,
+  weight = 600,
+  fill = ink,
+  halo = paper,
+  anchor = "middle",
+  mono,
+}: {
+  x: number;
+  y: number;
+  children: ReactNode;
+  size?: number;
+  weight?: number;
+  fill?: string;
+  halo?: string;
+  anchor?: "start" | "middle" | "end";
+  mono?: boolean;
+}) {
+  return (
+    <text
+      x={x}
+      y={y}
+      textAnchor={anchor}
+      fill={fill}
+      fontSize={size}
+      fontWeight={weight}
+      stroke={halo}
+      strokeWidth="4"
+      strokeLinejoin="round"
+      paintOrder="stroke"
+      letterSpacing={mono ? "0.04em" : undefined}
+      className={mono ? "font-mono" : "font-sans"}
+    >
+      {children}
+    </text>
+  );
+}
+
+/** An official icon centred on (x, y), with optional label lines beneath. */
+function Icon({
+  name,
+  x,
+  y,
+  size = 48,
+  lines = [],
+  labelSize = 12,
+  fill = ink,
+  halo = paper,
+}: {
+  name: string;
+  x: number;
+  y: number;
+  size?: number;
+  lines?: string[];
+  labelSize?: number;
+  fill?: string;
+  halo?: string;
+}) {
+  return (
+    <g>
+      <image href={`/aws-icons/${name}.svg`} x={x - size / 2} y={y - size / 2} width={size} height={size} />
+      {lines.map((line, i) => (
+        <Halo key={line} x={x} y={y + size / 2 + labelSize + 4 + i * (labelSize + 3)} size={labelSize} fill={fill} halo={halo}>
+          {line}
+        </Halo>
+      ))}
+    </g>
+  );
+}
+
+function SecurityGroupBox({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+  return <rect x={x} y={y} width={w} height={h} fill="none" stroke={aws.red} strokeWidth="1.25" />;
+}
+
+/* ------------------------------------------------------------------ */
 /* Fig. 01 — AWS three-tier                                            */
 /* ------------------------------------------------------------------ */
 
-function Box({ x, y, w, h, label, sub }: { x: number; y: number; w: number; h: number; label: string; sub?: string }) {
-  return (
-    <g>
-      <rect x={x} y={y} width={w} height={h} fill={white} stroke={ink} strokeWidth="1.25" />
-      <Name x={x + w / 2} y={y + (sub ? h / 2 - 1 : h / 2 + 5)} anchor="middle">
-        {label}
-      </Name>
-      {sub ? (
-        <Mono x={x + w / 2} y={y + h / 2 + 15} anchor="middle" size={9.5}>
-          {sub}
-        </Mono>
-      ) : null}
-    </g>
-  );
-}
-
-function SecurityGroup({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
-  return <rect x={x} y={y} width={w} height={h} stroke={brand} strokeWidth="1.25" strokeDasharray="5 4" />;
-}
-
-function Band({ x, y, w, h, label }: { x: number; y: number; w: number; h: number; label: string }) {
-  return (
-    <g>
-      <rect x={x} y={y} width={w} height={h} fill={paper} stroke={rule} strokeWidth="1" />
-      <Mono x={x + 14} y={y + 22}>
-        {label}
-      </Mono>
-    </g>
-  );
-}
-
 function AwsWide() {
   const a = "url(#aws-arrow-w)";
+  const zones = [
+    { x: 200, label: "Availability Zone 1" },
+    { x: 572, label: "Availability Zone 2" },
+  ];
   return (
-    <svg viewBox="0 0 880 504" className="block h-auto w-full" fill="none">
+    <svg viewBox="0 0 980 664" className="block h-auto w-full" fill="none">
       <defs>
-        <Arrowhead id="aws-arrow-w" color={brand} />
+        <Arrowhead id="aws-arrow-w" color={ink} />
       </defs>
-      <circle cx="58" cy="136" r="26" fill={white} stroke={ink} strokeWidth="1.25" />
-      <path d="M45 143h24a7 7 0 0 0 .8-13.9A10 10 0 0 0 51 128a7.4 7.4 0 0 0-6 15Z" stroke={ink} strokeWidth="1.25" />
-      <Mono x={58} y={184} anchor="middle">
-        Internet
-      </Mono>
+      <Icon name="users" x={50} y={232} size={44} lines={["Users"]} />
 
-      <rect x="150" y="24" width="712" height="460" stroke={ink} strokeWidth="1.25" />
-      <Mono x={166} y={46} fill={ink}>
-        VPC
-      </Mono>
+      <Group kind="cloud" x={110} y={12} w={860} h={640} label="AWS Cloud" />
+      <Group kind="region" x={128} y={50} w={826} h={590} label="Region" />
+      <Group kind="vpc" x={150} y={88} w={788} h={536} label="VPC" />
 
-      <Band x={182} y={62} w={662} h={124} label="Public subnets" />
-      <Band x={182} y={204} w={662} h={130} label="Private subnets · application" />
-      <Band x={182} y={352} w={662} h={114} label="Private subnets · data" />
+      {zones.map((zone) => (
+        <g key={zone.label}>
+          <Zone x={zone.x} y={126} w={348} h={484} label={zone.label} />
+          <Group kind="public" x={zone.x + 14} y={158} w={320} h={126} label="Public subnet" />
+          <Group kind="private" x={zone.x + 14} y={302} w={320} h={150} label="Private subnet" />
+          <Group kind="private" x={zone.x + 14} y={470} w={320} h={124} label="Private subnet" />
+        </g>
+      ))}
 
-      <rect x="136" y="114" width="28" height="44" fill={white} stroke={ink} strokeWidth="1.25" />
-      <Mono x={150} y={176} anchor="middle" size={9.5}>
-        IGW
-      </Mono>
+      <Group kind="asg" x={226} y={340} w={668} h={104} label="Auto Scaling group" />
+      <Group kind="generic" x={222} y={500} w={676} h={84} label="DB subnet group" color={subtle} />
 
-      <SecurityGroup x={462} y={90} w={212} h={76} />
-      <Box x={474} y={102} w={188} h={52} label="Load balancer" />
-
-      <SecurityGroup x={364} y={234} w={408} h={78} />
-      <Box x={376} y={246} w={170} h={54} label="Compute" sub="app instance" />
-      <Box x={590} y={246} w={170} h={54} label="Compute" sub="app instance" />
-
-      <SecurityGroup x={474} y={382} w={188} h={72} />
-      <Box x={486} y={394} w={164} h={48} label="Database" />
-
-      <g stroke={brand} strokeWidth="1.5">
-        <path d="M86 136H132" markerEnd={a} />
-        <path d="M166 128H470" markerEnd={a} />
-        <path d="M540 156v26H461v60" markerEnd={a} />
-        <path d="M596 156v26h79v60" markerEnd={a} />
-        <path d="M461 302v40h82v48" markerEnd={a} />
-        <path d="M675 302v40h-82v48" markerEnd={a} />
+      {/* Request path */}
+      <g stroke={ink} strokeWidth="1.4">
+        <path d="M76 232H124" markerEnd={a} />
+        <path d="M176 232H190V194H560V204" markerEnd={a} />
+        <path d="M560 258V294H374V364" markerEnd={a} />
+        <path d="M560 294H746V364" markerEnd={a} />
+        <path d="M364 440V512" markerEnd={a} />
+        <path d="M746 440V461H386V512" markerEnd={a} />
       </g>
-      <Step x={108} y={118} n={1} />
-      <Step x={320} y={110} n={2} />
-      <Step x={568} y={182} n={3} />
-      <Step x={568} y={342} n={4} />
-
-      <g transform="translate(694 104)">
-        <path d="M0 6h22" stroke={brand} strokeWidth="1.5" />
-        <Mono x={30} y={10} size={9.5}>
-          Request path
-        </Mono>
-        <rect x="0" y="22" width="22" height="12" stroke={brand} strokeWidth="1.25" strokeDasharray="5 4" />
-        <Mono x={30} y={32} size={9.5}>
-          Security group
-        </Mono>
+      {/* Outbound traffic from private instances */}
+      <g stroke={ink} strokeWidth="1.2" strokeDasharray="5 4">
+        <path d="M398 392H450V260" markerEnd={a} />
+        <path d="M770 392H822V260" markerEnd={a} />
       </g>
+
+      <Icon name="internet-gateway" x={150} y={232} size={44} lines={["Internet", "gateway"]} />
+      <SecurityGroupBox x={530} y={202} w={60} h={60} />
+      <Icon name="alb" x={560} y={232} size={44} lines={["Application", "Load Balancer"]} />
+      {zones.map((zone) => (
+        <g key={`r-${zone.label}`}>
+          <Icon name="nat-gateway" x={zone.x + 250} y={232} size={44} lines={["NAT gateway"]} labelSize={11.5} halo={aws.greenFill} />
+          <SecurityGroupBox x={zone.x + 144} y={362} w={60} h={60} />
+          <Icon name="ec2-instance" x={zone.x + 174} y={392} size={44} lines={["EC2 instance"]} labelSize={11.5} halo={aws.tealFill} />
+        </g>
+      ))}
+      <SecurityGroupBox x={334} y={506} w={60} h={60} />
+      <Icon name="rds-instance" x={364} y={536} size={44} lines={["Amazon RDS"]} labelSize={11.5} halo={aws.tealFill} />
     </svg>
   );
 }
 
 function AwsCompact() {
   const a = "url(#aws-arrow-c)";
+  const zones = [
+    { x: 40, label: "AZ 1" },
+    { x: 204, label: "AZ 2" },
+  ];
   return (
-    <svg viewBox="0 0 360 660" className="block h-auto w-full" fill="none">
+    <svg viewBox="0 0 400 724" className="block h-auto w-full" fill="none">
       <defs>
-        <Arrowhead id="aws-arrow-c" color={brand} />
+        <Arrowhead id="aws-arrow-c" color={ink} />
       </defs>
-      <circle cx="180" cy="30" r="20" fill={white} stroke={ink} strokeWidth="1.25" />
-      <path d="M170 35h19a5.5 5.5 0 0 0 .6-11A8 8 0 0 0 174.5 23a5.8 5.8 0 0 0-4.5 12Z" stroke={ink} strokeWidth="1.2" />
-      <Mono x={210} y={34}>
-        Internet
-      </Mono>
+      <Icon name="users" x={200} y={30} size={36} />
+      <Halo x={226} y={34} anchor="start" size={11}>
+        Users
+      </Halo>
 
-      <rect x="10" y="84" width="340" height="562" stroke={ink} strokeWidth="1.25" />
-      <Mono x={24} y={104} fill={ink}>
-        VPC
-      </Mono>
-      <rect x="164" y="72" width="32" height="24" fill={white} stroke={ink} strokeWidth="1.25" />
-      <Mono x={206} y={89} size={9.5}>
-        IGW
-      </Mono>
+      <Group kind="cloud" x={8} y={74} w={384} h={642} label="AWS Cloud" size={11} icon={20} />
+      <Group kind="region" x={18} y={104} w={364} h={602} label="Region" size={11} icon={20} />
+      <Group kind="vpc" x={28} y={140} w={344} h={556} label="VPC" size={11} icon={20} />
 
-      <Band x={24} y={116} w={312} h={126} label="Public subnets" />
-      <Band x={24} y={258} w={312} h={190} label="Private · application" />
-      <Band x={24} y={464} w={312} h={166} label="Private · data" />
+      {zones.map((zone) => (
+        <g key={zone.label}>
+          <Zone x={zone.x} y={180} w={156} h={504} label={zone.label} size={11} />
+          <Group kind="public" x={zone.x + 6} y={206} w={144} h={160} label="Public" size={10.5} icon={18} />
+          <Group kind="private" x={zone.x + 6} y={378} w={144} h={140} label="Private" size={10.5} icon={18} />
+          <Group kind="private" x={zone.x + 6} y={530} w={144} h={146} label="Private" size={10.5} icon={18} />
+        </g>
+      ))}
+      <Group kind="asg" x={52} y={404} w={296} h={102} label="Auto Scaling group" size={10.5} icon={18} />
+      <Group kind="generic" x={52} y={556} w={296} h={110} label="DB subnet group" size={10.5} color={subtle} />
 
-      <SecurityGroup x={84} y={158} w={192} h={70} />
-      <Box x={96} y={170} w={168} h={46} label="Load balancer" />
-
-      <SecurityGroup x={34} y={334} w={292} h={78} />
-      <Box x={46} y={346} w={124} h={54} label="Compute" sub="app" />
-      <Box x={190} y={346} w={124} h={54} label="Compute" sub="app" />
-
-      <SecurityGroup x={84} y={538} w={192} h={70} />
-      <Box x={96} y={550} w={168} h={46} label="Database" />
-
-      <g stroke={brand} strokeWidth="1.5">
-        <path d="M180 50v18" markerEnd={a} />
-        <path d="M180 98v66" markerEnd={a} />
-        <path d="M180 230v52H108v58" markerEnd={a} />
-        <path d="M180 282h72v58" markerEnd={a} />
-        <path d="M108 414v80h64v38" markerEnd={a} />
-        <path d="M252 414v80h-64v38" markerEnd={a} />
+      <g stroke={ink} strokeWidth="1.3">
+        <path d="M200 50V122" markerEnd={a} />
+        <path d="M200 162V292" markerEnd={a} />
+        <path d="M200 340V372H118V428" markerEnd={a} />
+        <path d="M200 372H282V428" markerEnd={a} />
+        <path d="M110 486V598" markerEnd={a} />
+        <path d="M282 486V522H126V598" markerEnd={a} />
       </g>
-      <Step x={156} y={60} n={1} />
-      <Step x={200} y={134} n={2} />
-      <Step x={196} y={300} n={3} />
-      <Step x={196} y={500} n={4} />
+      <g stroke={ink} strokeWidth="1.1" strokeDasharray="4 4">
+        <path d="M136 452H172V262H137" markerEnd={a} />
+        <path d="M300 452H346V262H301" markerEnd={a} />
+      </g>
+
+      <Icon name="internet-gateway" x={200} y={142} size={34} />
+      <Halo x={222} y={146} anchor="start" size={10.5}>
+        Internet gateway
+      </Halo>
+      {zones.map((zone) => (
+        <g key={`r-${zone.label}`}>
+          <Icon name="nat-gateway" x={zone.x + 78} y={262} size={34} lines={["NAT gateway"]} labelSize={10} halo={aws.greenFill} />
+          <SecurityGroupBox x={zone.x + 58} y={432} w={40} h={40} />
+          <Icon name="ec2-instance" x={zone.x + 78} y={452} size={32} lines={["EC2"]} labelSize={10} halo={aws.tealFill} />
+        </g>
+      ))}
+      <SecurityGroupBox x={180} y={296} w={40} h={40} />
+      <Icon name="alb" x={200} y={316} size={32} />
+      <Halo x={200} y={356} size={10}>
+        Load Balancer
+      </Halo>
+      <SecurityGroupBox x={98} y={602} w={40} h={40} />
+      <Icon name="rds-instance" x={118} y={622} size={32} lines={["RDS"]} labelSize={10} halo={paper} />
     </svg>
   );
 }
@@ -408,13 +532,14 @@ export function AwsThreeTierFigure({ number, className }: { number: string; clas
       className={className}
       caption={
         <>
-          Request path through the three tiers: (1) the internet gateway, (2) the load balancer in the public subnets, (3) compute
-          in the private application subnets, (4) the database in the private data subnets. Dashed outlines are security groups.
+          AWS three-tier architecture across two Availability Zones. Solid arrows are the request path: internet gateway,
+          Application Load Balancer, EC2 instances in an Auto Scaling group, Amazon RDS. Dashed arrows are outbound traffic
+          through each zone’s NAT gateway. Red outlines are security groups. Icons: AWS Architecture Icons.
         </>
       }
     >
       <Responsive
-        label="AWS three-tier network diagram. Inside a VPC, requests from the internet pass through an internet gateway to a load balancer in public subnets, then to two compute instances in private application subnets, then to a database in private data subnets. Each tier sits inside its own security group."
+        label="AWS architecture diagram. In an AWS Region, a VPC spans two Availability Zones, each with a public subnet, a private application subnet, and a private data subnet. Users reach an internet gateway, then an Application Load Balancer across the public subnets, which forwards to EC2 instances in an Auto Scaling group across the private application subnets. The instances connect to an Amazon RDS database in a DB subnet group across the private data subnets, and reach the internet outbound through a NAT gateway in each public subnet. Security groups surround the load balancer, the instances, and the database."
         wide={<AwsWide />}
         compact={<AwsCompact />}
       />
@@ -423,110 +548,100 @@ export function AwsThreeTierFigure({ number, className }: { number: string; clas
 }
 
 /* ------------------------------------------------------------------ */
-/* Fig. 02 — Linux operations scope                                    */
+/* Fig. 02 — Linux operations                                          */
 /* ------------------------------------------------------------------ */
 
-const operations = [
-  { name: "Administer", detail: "users · services · storage" },
-  { name: "Patch", detail: "OS updates" },
-  { name: "Configure", detail: "managed config" },
-  { name: "Troubleshoot", detail: "logs · diagnosis" },
+const lanes: Array<{ name: string; detail: string; icon: string | null }> = [
+  { name: "Administer", detail: "users · services · storage", icon: null },
+  { name: "Patch", detail: "OS updates", icon: "shield" },
+  { name: "Configure", detail: "managed configuration", icon: "gear" },
+  { name: "Troubleshoot", detail: "logs · diagnosis", icon: "document" },
 ];
-
-function Hosts({ x, y, w }: { x: number; y: number; w: number }) {
-  return (
-    <g>
-      {[0, 1, 2].map((i) => (
-        <g key={i}>
-          <rect x={x} y={y + i * 42} width={w} height="34" fill={white} stroke={ink} strokeWidth="1.25" />
-          {[0, 1, 2, 3].map((j) => (
-            <path key={j} d={`M${x + 12 + j * 7} ${y + i * 42 + 10}v14`} stroke={rule} strokeWidth="2" />
-          ))}
-          <circle cx={x + w - 16} cy={y + i * 42 + 17} r="3.5" fill={brand} />
-          <Mono x={x + w - 28} y={y + i * 42 + 21} anchor="end" size={9.5}>
-            {`host-0${i + 1}`}
-          </Mono>
-        </g>
-      ))}
-    </g>
-  );
-}
 
 function LinuxWide() {
   const a = "url(#linux-arrow-w)";
-  const nodes = [
-    { x: 320, y: 75, lx: 320, ly: 26, anchor: "middle" as const },
-    { x: 480, y: 235, lx: 512, ly: 231, anchor: "start" as const },
-    { x: 320, y: 395, lx: 320, ly: 440, anchor: "middle" as const },
-    { x: 160, y: 235, lx: 128, ly: 231, anchor: "end" as const },
-  ];
+  const ys = [96, 188, 280, 372];
   return (
-    <svg viewBox="0 0 640 476" className="block h-auto w-full" fill="none">
+    <svg viewBox="0 0 960 452" className="block h-auto w-full" fill="none">
       <defs>
-        <Arrowhead id="linux-arrow-w" color={brand} />
+        <Arrowhead id="linux-arrow-w" color={ink} />
       </defs>
-      <g stroke={brand} strokeWidth="1.5">
-        <path d="M345 77A160 160 0 0 1 478 210" markerEnd={a} />
-        <path d="M478 260A160 160 0 0 1 345 393" markerEnd={a} />
-        <path d="M295 393A160 160 0 0 1 162 260" markerEnd={a} />
-        <path d="M162 210A160 160 0 0 1 295 77" markerEnd={a} />
+      <Halo x={80} y={190}>
+        Admin workstation
+      </Halo>
+      <Icon name="client" x={80} y={232} size={52} />
+
+      <Group kind="generic" x={700} y={36} w={236} h={392} label="Linux hosts" color={subtle} />
+      {[124, 232, 340].map((y, i) => (
+        <Icon key={y} name="servers" x={818} y={y} size={52} lines={[`host-0${i + 1}`]} labelSize={11} />
+      ))}
+
+      <g stroke={ink} strokeWidth="1.4">
+        <path d="M108 232H180V96H690" markerEnd={a} />
+        <path d="M180 188H370" />
+        <path d="M430 188H690" markerEnd={a} />
+        <path d="M180 232V280H370" />
+        <path d="M430 280H690" markerEnd={a} />
       </g>
-      <Hosts x={250} y={180} w={140} />
-      <Mono x={320} y={330} anchor="middle" fill={ink}>
-        Linux hosts
-      </Mono>
-      {operations.map((op, i) => {
-        const n = nodes[i];
-        return (
-          <g key={op.name}>
-            <circle cx={n.x} cy={n.y} r="20" fill={paper} stroke={ink} strokeWidth="1.25" />
-            <text x={n.x} y={n.y + 4} textAnchor="middle" fill={brand} fontSize="11" className="font-mono">
-              {`0${i + 1}`}
-            </text>
-            <Name x={n.lx} y={n.ly} anchor={n.anchor} size={17}>
-              {op.name}
-            </Name>
-            <Mono x={n.lx} y={n.ly + 18} anchor={n.anchor} size={10}>
-              {op.detail}
-            </Mono>
-          </g>
-        );
-      })}
+      <g stroke={ink} strokeWidth="1.4" strokeDasharray="5 4">
+        <path d="M690 372H432" markerEnd={a} />
+        <path d="M368 372H80V266" markerEnd={a} />
+      </g>
+
+      {lanes.map((lane, i) => (
+        <g key={lane.name}>
+          {lane.icon ? <Icon name={lane.icon} x={400} y={ys[i]} size={44} /> : null}
+          <Halo x={456} y={ys[i] - 26} anchor="start" size={15}>
+            {`0${i + 1}  ${lane.name}`}
+          </Halo>
+          <Halo x={456} y={ys[i] - 10} anchor="start" size={10.5} weight={400} fill={subtle} mono>
+            {lane.detail.toUpperCase()}
+          </Halo>
+        </g>
+      ))}
     </svg>
   );
 }
 
 function LinuxCompact() {
   const a = "url(#linux-arrow-c)";
-  const ys = [222, 316, 410, 504];
+  const ys = [170, 262, 354, 446];
   return (
-    <svg viewBox="0 0 360 560" className="block h-auto w-full" fill="none">
+    <svg viewBox="0 0 400 712" className="block h-auto w-full" fill="none">
       <defs>
-        <Arrowhead id="linux-arrow-c" color={brand} />
+        <Arrowhead id="linux-arrow-c" color={ink} />
       </defs>
-      <Hosts x={70} y={16} w={220} />
-      <Mono x={180} y={166} anchor="middle" fill={ink}>
-        Linux hosts
-      </Mono>
-      <g stroke={brand} strokeWidth="1.5">
-        {ys.slice(0, -1).map((y, i) => (
-          <path key={y} d={`M46 ${y + 20}V${ys[i + 1] - 22}`} markerEnd={a} />
-        ))}
-        <path d="M46 524v18H16V222h6" markerEnd={a} />
+      <Icon name="client" x={200} y={44} size={48} lines={["Admin workstation"]} />
+
+      <g stroke={ink} strokeWidth="1.3">
+        <path d="M228 44H372V528" markerEnd={a} />
       </g>
-      {operations.map((op, i) => (
-        <g key={op.name}>
-          <circle cx="46" cy={ys[i]} r="18" fill={paper} stroke={ink} strokeWidth="1.25" />
-          <text x="46" y={ys[i] + 4} textAnchor="middle" fill={brand} fontSize="11" className="font-mono">
-            {`0${i + 1}`}
-          </text>
-          <Name x={80} y={ys[i] - 1} size={17}>
-            {op.name}
-          </Name>
-          <Mono x={80} y={ys[i] + 17} size={10}>
-            {op.detail}
-          </Mono>
+      <g stroke={ink} strokeWidth="1.3" strokeDasharray="5 4">
+        <path d="M44 600H22V44H172" markerEnd={a} />
+      </g>
+
+      {lanes.map((lane, i) => (
+        <g key={lane.name}>
+          {lane.icon ? (
+            <Icon name={lane.icon} x={74} y={ys[i]} size={40} />
+          ) : (
+            <g>
+              <circle cx="74" cy={ys[i]} r="18" fill={white} stroke={ink} strokeWidth="1.25" />
+              <path d={`M64 ${ys[i]}h20M74 ${ys[i] - 10}v20`} stroke={ink} strokeWidth="1.25" />
+            </g>
+          )}
+          <Halo x={108} y={ys[i] - 2} anchor="start" size={16}>
+            {`0${i + 1}  ${lane.name}`}
+          </Halo>
+          <Halo x={108} y={ys[i] + 16} anchor="start" size={10} weight={400} fill={subtle} mono>
+            {lane.detail.toUpperCase()}
+          </Halo>
         </g>
+      ))}
+
+      <Group kind="generic" x={44} y={540} w={312} h={156} label="Linux hosts" color={subtle} />
+      {[110, 200, 290].map((x, i) => (
+        <Icon key={x} name="servers" x={x} y={616} size={44} lines={[`host-0${i + 1}`]} labelSize={10.5} />
       ))}
     </svg>
   );
@@ -534,9 +649,13 @@ function LinuxCompact() {
 
 export function LinuxOperationsFigure({ number, className }: { number: string; className?: string }) {
   return (
-    <Plate number={number} className={className} caption="Scope of the operations work: the routine cycle of administering, patching, configuring, and troubleshooting Linux hosts.">
+    <Plate
+      number={number}
+      className={className}
+      caption="Scope of the operations work: from an admin workstation, the Linux hosts are administered, patched, and configured; logs and diagnostics come back for troubleshooting (dashed). Icons: AWS Architecture Icons (general)."
+    >
       <Responsive
-        label="Cycle diagram around a group of Linux hosts with four stages: administer (users, services, storage), patch (OS updates), configure (managed configuration), and troubleshoot (logs and diagnosis)."
+        label="Operations diagram. An admin workstation connects to a group of three Linux hosts through four lanes: administer (users, services, storage), patch (OS updates), and configure (managed configuration) go to the hosts; troubleshoot (logs and diagnosis) returns from the hosts to the workstation."
         wide={<LinuxWide />}
         compact={<LinuxCompact />}
       />
@@ -548,128 +667,107 @@ export function LinuxOperationsFigure({ number, className }: { number: string; c
 /* Fig. 03 — Glomaf platform outline (dark)                            */
 /* ------------------------------------------------------------------ */
 
-function NightLabel({ x, y, children, anchor = "start", sub }: { x: number; y: number; children: string; anchor?: "start" | "middle"; sub?: string }) {
+function NightGroup({ x, y, w, h, label, dashed }: { x: number; y: number; w: number; h: number; label: string; dashed?: boolean }) {
   return (
     <g>
-      <Name x={x} y={y} anchor={anchor} fill="#ffffff" size={15}>
-        {children}
-      </Name>
-      {sub ? (
-        <Mono x={x} y={y + 17} anchor={anchor} fill={night.dim} size={10}>
-          {sub}
-        </Mono>
-      ) : null}
+      <rect x={x} y={y} width={w} height={h} fill="none" stroke={dashed ? night.dim : night.mint} strokeWidth="1.25" strokeDasharray={dashed ? "6 4" : undefined} />
+      <text x={x + 12} y={y + 20} fill={dashed ? night.dim : night.mint} fontSize="11" letterSpacing="0.06em" className="font-mono uppercase">
+        {label}
+      </text>
     </g>
   );
 }
 
-function Browser({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+function Feature({ x, y, w, label }: { x: number; y: number; w: number; label: string }) {
   return (
     <g>
-      <rect x={x} y={y} width={w} height={h} fill={night.bg} stroke={night.text} strokeWidth="1.25" />
-      <path d={`M${x} ${y + 20}h${w}`} stroke={night.line} strokeWidth="1.25" />
-      {[0, 1, 2].map((i) => (
-        <circle key={i} cx={x + 12 + i * 10} cy={y + 10} r="2.5" fill={night.dim} />
-      ))}
-      {[0, 1, 2].map((i) => (
-        <rect key={i} x={x + 14 + i * ((w - 28) / 3 + 0)} y={y + 36} width={(w - 28) / 3 - 8} height={h * 0.32} fill={night.line} />
-      ))}
-      <path d={`M${x + 14} ${y + h - 24}h${w * 0.4}M${x + 14} ${y + h - 13}h${w * 0.25}`} stroke={night.line} strokeWidth="4" />
-    </g>
-  );
-}
-
-function Phone({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
-  return (
-    <g>
-      <rect x={x} y={y} width={w} height={h} rx="12" fill={night.bg} stroke={night.text} strokeWidth="1.25" />
-      <path d={`M${x + w / 2 - 12} ${y + 10}h24`} stroke={night.line} strokeWidth="3" />
-      <rect x={x + 10} y={y + 26} width={w * 0.55} height="14" rx="7" fill={night.line} />
-      <rect x={x + w * 0.35} y={y + 48} width={w * 0.55} height="14" rx="7" fill={night.mint} fillOpacity="0.35" />
-      <rect x={x + 10} y={y + 70} width={w * 0.45} height="14" rx="7" fill={night.line} />
-      <rect x={x + 10} y={y + h - 26} width={w - 20} height="14" rx="7" stroke={night.dim} strokeWidth="1" />
-    </g>
-  );
-}
-
-function Backend({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
-  return (
-    <g>
-      <rect x={x} y={y} width={w} height={h} fill={night.bg} stroke={night.mint} strokeWidth="1.25" />
-      <NightLabel x={x + 20} y={y + h / 2 - 2} sub="backend">
-        Supabase
-      </NightLabel>
-    </g>
-  );
-}
-
-/** Product features confirmed so far, drawn apart from the backend: which service implements them isn't stated. */
-function Features({ x, y, w }: { x: number; y: number; w: number }) {
-  const rows = ["Authentication", "Messaging"];
-  return (
-    <g>
-      <rect x={x} y={y} width={w} height={44 + rows.length * 50} stroke={night.dim} strokeWidth="1" strokeDasharray="4 4" />
-      <Mono x={x + 20} y={y + 28} fill={night.dim} size={10}>
-        Product features
-      </Mono>
-      {rows.map((row, i) => (
-        <g key={row}>
-          <rect x={x + 20} y={y + 44 + i * 50} width={w - 40} height="38" fill={night.line} />
-          <Mono x={x + 34} y={y + 44 + i * 50 + 23} fill={night.text} size={10.5}>
-            {row}
-          </Mono>
-        </g>
-      ))}
+      <rect x={x} y={y} width={w} height="36" fill={night.line} />
+      <text x={x + 14} y={y + 22} fill={night.text} fontSize="11" letterSpacing="0.06em" className="font-mono uppercase">
+        {label}
+      </text>
     </g>
   );
 }
 
 function GlomafWide() {
   const a = "url(#glomaf-arrow-w)";
+  const label = { fill: "#ffffff", halo: night.bg };
   return (
-    <svg viewBox="0 0 640 430" className="block h-auto w-full" fill="none">
+    <svg viewBox="0 0 960 420" className="block h-auto w-full" fill="none">
       <defs>
         <Arrowhead id="glomaf-arrow-w" color={night.mint} />
       </defs>
-      <Browser x={24} y={30} w={220} h={136} />
-      <NightLabel x={24} y={194} sub="Next.js">
-        Web app
-      </NightLabel>
-      <Phone x={62} y={240} w={92} h={150} />
-      <NightLabel x={172} y={318} sub="React Native · Expo">
-        Mobile app
-      </NightLabel>
-      <g stroke={night.mint} strokeWidth="1.5">
-        <path d="M248 98h80v14h46" markerEnd={a} />
-        <path d="M158 284h170V112" />
+      <g stroke={night.mint} strokeWidth="1.4">
+        <path d="M96 210H190V118H290" markerEnd={a} />
+        <path d="M190 210V302H290" markerEnd={a} />
+        <path d="M370 118H556" markerEnd={a} />
+        <path d="M370 302H470V118" />
       </g>
-      <Backend x={380} y={62} w={236} h={100} />
-      <Features x={380} y={196} w={236} />
+      <Icon name="users-dark" x={66} y={210} size={52} lines={["Users"]} {...label} />
+      <Icon name="client-dark" x={330} y={118} size={52} lines={["Web app"]} {...label} />
+      <Halo x={330} y={186} size={10.5} weight={400} fill={night.dim} halo={night.bg} mono>
+        NEXT.JS
+      </Halo>
+      <Icon name="mobile-client-dark" x={330} y={302} size={52} lines={["Mobile app"]} {...label} />
+      <Halo x={330} y={370} size={10.5} weight={400} fill={night.dim} halo={night.bg} mono>
+        REACT NATIVE · EXPO
+      </Halo>
+
+      <NightGroup x={566} y={40} w={370} h={156} label="Backend" />
+      <Icon name="database-dark" x={640} y={124} size={52} />
+      <Halo x={684} y={120} anchor="start" size={17} {...label}>
+        Supabase
+      </Halo>
+      <Halo x={684} y={140} anchor="start" size={10.5} weight={400} fill={night.dim} halo={night.bg} mono>
+        MANAGED BACKEND
+      </Halo>
+
+      <NightGroup x={566} y={228} w={370} h={152} label="Product features" dashed />
+      <Feature x={586} y={264} w={330} label="Authentication" />
+      <Feature x={586} y={314} w={330} label="Messaging" />
     </svg>
   );
 }
 
 function GlomafCompact() {
   const a = "url(#glomaf-arrow-c)";
+  const label = { fill: "#ffffff", halo: night.bg };
   return (
-    <svg viewBox="0 0 360 512" className="block h-auto w-full" fill="none">
+    <svg viewBox="0 0 400 680" className="block h-auto w-full" fill="none">
       <defs>
         <Arrowhead id="glomaf-arrow-c" color={night.mint} />
       </defs>
-      <Browser x={12} y={14} w={196} h={124} />
-      <NightLabel x={12} y={164} sub="Next.js">
-        Web app
-      </NightLabel>
-      <Phone x={248} y={8} w={92} h={136} />
-      <NightLabel x={294} y={164} anchor="middle" sub="RN · Expo">
-        Mobile app
-      </NightLabel>
-      <g stroke={night.mint} strokeWidth="1.5">
-        <path d="M110 196v22h70v22" markerEnd={a} />
-        <path d="M294 196v22H180" />
+      <g stroke={night.mint} strokeWidth="1.3">
+        <path d="M200 70V112H110V140" markerEnd={a} />
+        <path d="M200 112H290V140" markerEnd={a} />
+        <path d="M110 262V292H200V320" markerEnd={a} />
+        <path d="M290 262V292H200" />
       </g>
-      <Backend x={12} y={244} w={336} h={92} />
-      <Features x={12} y={364} w={336} />
+      <Icon name="users-dark" x={200} y={44} size={44} />
+      <Halo x={232} y={48} anchor="start" size={12} {...label}>
+        Users
+      </Halo>
+      <Icon name="client-dark" x={110} y={176} size={44} lines={["Web app"]} {...label} />
+      <Halo x={110} y={246} size={10} weight={400} fill={night.dim} halo={night.bg} mono>
+        NEXT.JS
+      </Halo>
+      <Icon name="mobile-client-dark" x={290} y={176} size={44} lines={["Mobile app"]} {...label} />
+      <Halo x={290} y={246} size={10} weight={400} fill={night.dim} halo={night.bg} mono>
+        RN · EXPO
+      </Halo>
+
+      <NightGroup x={16} y={330} w={368} h={140} label="Backend" />
+      <Icon name="database-dark" x={78} y={408} size={48} />
+      <Halo x={118} y={404} anchor="start" size={16} {...label}>
+        Supabase
+      </Halo>
+      <Halo x={118} y={422} anchor="start" size={10} weight={400} fill={night.dim} halo={night.bg} mono>
+        MANAGED BACKEND
+      </Halo>
+
+      <NightGroup x={16} y={498} w={368} h={154} label="Product features" dashed />
+      <Feature x={34} y={536} w={332} label="Authentication" />
+      <Feature x={34} y={588} w={332} label="Messaging" />
     </svg>
   );
 }
@@ -680,10 +778,10 @@ export function GlomafPlatformFigure({ number, className }: { number: string; cl
       number={number}
       className={className}
       tone="dark"
-      caption="Platform outline: a Next.js web app and a React Native (Expo) mobile app on one Supabase backend. Authentication and messaging are among the product’s features."
+      caption="Platform outline: users reach a Next.js web app and a React Native (Expo) mobile app, both on one Supabase backend. Authentication and messaging are among the product’s features."
     >
       <Responsive
-        label="Platform diagram. A Next.js web app and a React Native Expo mobile app both connect to a Supabase backend. Product features include authentication and messaging."
+        label="Platform diagram. Users reach a Next.js web app and a React Native Expo mobile app; both connect to a Supabase backend. Product features include authentication and messaging."
         wide={<GlomafWide />}
         compact={<GlomafCompact />}
       />

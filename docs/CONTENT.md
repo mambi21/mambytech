@@ -77,7 +77,7 @@ Each project has one of three `publication` states:
 
 - `problemSummary` and `contributionSummary`: one or two sentences each (at most 220 characters). Project lists show them as "Problem" and "My contribution", so state the problem and what *you* did plainly.
 - `cover`: an optional image for the showcase and the case-study header. If it's missing, the architecture diagram is used, then the first `media` image, then the project's `figure`.
-- `figure`: a labelled technical figure drawn in code (`components/figures.tsx`): `"aws-three-tier"`, `"linux-operations"` or `"glomaf-platform"`. `"glomaf-platform"` is drawn on the dark ground, so that project gets the dark band in the showcase. Only use a figure if it matches the real system.
+- `figure`: a labelled technical figure drawn in code (`components/figures.tsx`): `"aws-three-tier"`, `"linux-operations"` or `"glomaf-platform"`. `"glomaf-platform"` is drawn on the dark ground, so that project gets the dark band in the showcase. Only use a figure if it matches the real system. The figures use the official AWS Architecture Icons (AWS permits them in architecture diagrams), stored in `public/aws-icons/` from the 07/31/2026 asset package. Download newer icons from https://aws.amazon.com/architecture/icons/ when you update a figure.
 - `scope`: the areas of work the project covered, listed in the showcase.
 - `category`: one of `Cloud Infrastructure`, `Linux`, `DevOps`, `Software Projects`.
 - `featured: true` shows the project in the home page showcase. Layouts alternate automatically: a full-width figure, then an asymmetric split, with dark-figure projects on a full-bleed dark band.
