@@ -11,17 +11,18 @@ import { needs } from "@/lib/content/owner-input";
  */
 const project: ProjectInput = {
   slug: "cicd-pipeline",
-  title: "CI/CD Pipeline: GitHub to EKS and EC2",
+  title: "CI/CD Pipeline: GitOps to EKS",
   summary:
-    "A Jenkins pipeline design: PR checks with a SonarQube gate, one versioned build promoted from staging to production after tests and approval, rolling deploys to EKS and EC2 with monitoring and rollback, and Terraform plan/apply.",
+    "A GitOps pipeline design: Jenkins CI with a SonarQube gate and Trivy image scans, one versioned build promoted by Argo CD and Helm from staging to production on EKS, monitoring with rollback, and Terraform plan/apply.",
   problemSummary: needs("One or two sentences: what releasing looked like before this pipeline, and what had to improve."),
   contributionSummary: needs("One or two sentences: which parts of the pipeline you designed, built, and maintain."),
   category: "DevOps",
-  technologies: ["GitHub", "Jenkins", "SonarQube", "Nexus", "Docker", "Amazon ECR", "Amazon EKS", "Amazon EC2", "Terraform", "Amazon S3", "IAM", "Prometheus", "Grafana"],
+  technologies: ["GitHub", "Jenkins", "SonarQube", "Nexus", "Docker", "Trivy", "Amazon ECR", "Helm", "Argo CD", "Amazon EKS", "Amazon EC2", "Terraform", "Amazon S3", "IAM", "Prometheus", "Grafana"],
   scope: [
     "Pull-request checks",
     "Quality gate",
     "Versioned builds & image scanning",
+    "GitOps delivery",
     "Staging → production promotion",
     "Approval gates",
     "Rolling deploys & rollback",

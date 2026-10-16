@@ -109,7 +109,7 @@ function Arrowhead({ id, color }: { id: string; color: string }) {
 /* ------------------------------------------------------------------ */
 
 const layers: Array<{ name: string; tools: string[] }> = [
-  { name: "Workloads", tools: ["Docker / Kubernetes (EKS)"] },
+  { name: "Workloads", tools: ["Docker / Kubernetes (EKS)", "Helm / Argo CD"] },
   { name: "Automation & CI/CD", tools: ["Ansible / Bash / Python", "Jenkins / GitHub Actions"] },
   { name: "Infrastructure as code", tools: ["Terraform"] },
   { name: "Cloud network & compute", tools: ["AWS: VPC / EC2 / IAM"] },
@@ -231,7 +231,7 @@ export function StackFigure({ className }: { className?: string }) {
       caption="The layers I work across, from the operating system up to the workloads it runs, with the tools I use at each. Monitoring and incident response run through all of them."
     >
       <Responsive
-        label="Exploded diagram of five layers. From the bottom: operating system (Linux: RHEL, Ubuntu); cloud network and compute (AWS: VPC, EC2, IAM); infrastructure as code (Terraform); automation and CI/CD (Ansible, Bash, Python, Jenkins, GitHub Actions); workloads (Docker, Kubernetes on EKS). Monitoring and incident response span every layer."
+        label="Exploded diagram of five layers. From the bottom: operating system (Linux: RHEL, Ubuntu); cloud network and compute (AWS: VPC, EC2, IAM); infrastructure as code (Terraform); automation and CI/CD (Ansible, Bash, Python, Jenkins, GitHub Actions); workloads (Docker, Kubernetes on EKS, Helm, Argo CD). Monitoring and incident response span every layer."
         wide={<StackDrawing />}
         compact={<StackDrawing compact />}
       />
@@ -432,23 +432,32 @@ function AwsWide() {
       <g stroke={ink} strokeWidth="1.4">
         <path d="M76 232H124" markerEnd={a} />
         <path d="M176 232H190V194H560V204" markerEnd={a} />
-        <path d="M560 258V294H374V364" markerEnd={a} />
-        <path d="M560 294H746V364" markerEnd={a} />
+        <path d="M560 256V272H374V364" markerEnd={a} />
+        <path d="M560 272H746V364" markerEnd={a} />
         <path d="M364 440V512" markerEnd={a} />
         <path d="M746 440V461H386V512" markerEnd={a} />
       </g>
       {/* Outbound traffic from private instances */}
       <g stroke={ink} strokeWidth="1.2" strokeDasharray="5 4">
-        <path d="M398 392H450V260" markerEnd={a} />
-        <path d="M770 392H822V260" markerEnd={a} />
+        <path d="M404 392H450V260" markerEnd={a} />
+        <path d="M716 392H708V294H450" />
       </g>
 
       <Icon name="internet-gateway" x={150} y={232} size={44} lines={["Internet", "gateway"]} />
       <SecurityGroupBox x={530} y={202} w={60} h={60} />
-      <Icon name="alb" x={560} y={232} size={44} lines={["Application", "Load Balancer"]} />
+      <Icon name="alb" x={560} y={232} size={44} />
+      <Halo x={590} y={228} anchor="start" halo={aws.greenFill}>
+        Application
+      </Halo>
+      <Halo x={590} y={243} anchor="start" halo={aws.greenFill}>
+        Load Balancer
+      </Halo>
+      <Icon name="nat-gateway" x={450} y={232} size={44} />
+      <Halo x={422} y={236} anchor="end" size={11.5} halo={aws.greenFill}>
+        NAT gateway
+      </Halo>
       {zones.map((zone) => (
         <g key={`r-${zone.label}`}>
-          <Icon name="nat-gateway" x={zone.x + 250} y={232} size={44} lines={["NAT gateway"]} labelSize={11.5} halo={aws.greenFill} />
           <SecurityGroupBox x={zone.x + 144} y={362} w={60} h={60} />
           <Icon name="ec2-instance" x={zone.x + 174} y={392} size={44} lines={["EC2 instance"]} labelSize={11.5} halo={aws.tealFill} />
         </g>
@@ -500,7 +509,7 @@ function AwsCompact() {
       </g>
       <g stroke={ink} strokeWidth="1.1" strokeDasharray="4 4">
         <path d="M136 452H172V262H137" markerEnd={a} />
-        <path d="M300 452H346V262H301" markerEnd={a} />
+        <path d="M300 452H346V236H118V244" markerEnd={a} />
       </g>
 
       <Icon name="internet-gateway" x={200} y={142} size={34} />
@@ -509,11 +518,11 @@ function AwsCompact() {
       </Halo>
       {zones.map((zone) => (
         <g key={`r-${zone.label}`}>
-          <Icon name="nat-gateway" x={zone.x + 78} y={262} size={34} lines={["NAT gateway"]} labelSize={10} halo={aws.greenFill} />
           <SecurityGroupBox x={zone.x + 58} y={432} w={40} h={40} />
           <Icon name="ec2-instance" x={zone.x + 78} y={452} size={32} lines={["EC2"]} labelSize={10} halo={aws.tealFill} />
         </g>
       ))}
+      <Icon name="nat-gateway" x={118} y={262} size={34} lines={["NAT gateway"]} labelSize={10} halo={aws.greenFill} />
       <SecurityGroupBox x={180} y={296} w={40} h={40} />
       <Icon name="alb" x={200} y={316} size={32} />
       <Halo x={200} y={356} size={10}>
@@ -534,12 +543,12 @@ export function AwsThreeTierFigure({ number, className }: { number: string; clas
         <>
           AWS three-tier architecture across two Availability Zones. Solid arrows are the request path: internet gateway,
           Application Load Balancer, EC2 instances in an Auto Scaling group, Amazon RDS. Dashed arrows are outbound traffic
-          through each zone’s NAT gateway. Red outlines are security groups. Icons: AWS Architecture Icons.
+          through a single NAT gateway in Availability Zone 1. Red outlines are security groups. Icons: AWS Architecture Icons.
         </>
       }
     >
       <Responsive
-        label="AWS architecture diagram. In an AWS Region, a VPC spans two Availability Zones, each with a public subnet, a private application subnet, and a private data subnet. Users reach an internet gateway, then an Application Load Balancer across the public subnets, which forwards to EC2 instances in an Auto Scaling group across the private application subnets. The instances connect to an Amazon RDS database in a DB subnet group across the private data subnets, and reach the internet outbound through a NAT gateway in each public subnet. Security groups surround the load balancer, the instances, and the database."
+        label="AWS architecture diagram. In an AWS Region, a VPC spans two Availability Zones, each with a public subnet, a private application subnet, and a private data subnet. Users reach an internet gateway, then an Application Load Balancer across the public subnets, which forwards to EC2 instances in an Auto Scaling group across the private application subnets. The instances connect to an Amazon RDS database in a DB subnet group across the private data subnets, and reach the internet outbound through a single NAT gateway in the first zone’s public subnet. Security groups surround the load balancer, the instances, and the database."
         wide={<AwsWide />}
         compact={<AwsCompact />}
       />
@@ -867,41 +876,44 @@ function Note({ x, y, children, anchor = "start", size = 10 }: { x: number; y: n
 function PipelineWide() {
   const a = "url(#cicd-arrow-w)";
   return (
-    <svg viewBox="0 0 1100 780" className="block h-auto w-full" fill="none">
+    <svg viewBox="0 0 1240 800" className="block h-auto w-full" fill="none">
       <defs>
         <Arrowhead id="cicd-arrow-w" color={ink} />
       </defs>
 
       {/* Lanes */}
-      <Box x={264} y={40} w={816} h={206} label="Continuous integration · Jenkins" logo="jenkins" />
-      <Box x={264} y={290} w={816} h={252} label="Continuous delivery · Jenkins" logo="jenkins" />
-      <Box x={280} y={330} w={250} h={160} label="Staging" />
-      <Box x={800} y={330} w={262} h={160} label="Production" />
-      <Box x={800} y={590} w={280} h={150} label="Monitoring" />
-      <Box x={20} y={590} w={740} h={176} label="Infrastructure pipeline · Terraform" logo="terraform" />
+      <Box x={264} y={40} w={956} h={210} label="Continuous integration · Jenkins" logo="jenkins" />
+      <Box x={264} y={290} w={956} h={262} label="Continuous delivery · GitOps" logo="argo" />
+      <Box x={545} y={330} w={230} h={160} label="Staging" />
+      <Box x={1030} y={330} w={180} h={160} label="Production" />
+      <Box x={960} y={600} w={260} h={170} label="Monitoring" />
+      <Box x={20} y={600} w={900} h={180} label="Infrastructure pipeline · Terraform" logo="terraform" />
 
       {/* Main path */}
       <g stroke={ink} strokeWidth="1.4">
         <path d="M84 130H148" markerEnd={a} />
         <path d="M208 130H298" markerEnd={a} />
-        <path d="M358 130H448" markerEnd={a} />
-        <path d="M508 130H598" markerEnd={a} />
-        <path d="M658 130H748" markerEnd={a} />
-        <path d="M808 130H918" markerEnd={a} />
-        <path d="M950 210V262H500V326" markerEnd={a} />
-        <path d="M530 410H568" markerEnd={a} />
-        <path d="M630 410H700" markerEnd={a} />
-        <path d="M760 410H796" markerEnd={a} />
-        <path d="M886 664H982" markerEnd={a} />
-        <path d="M138 664H240" markerEnd={a} />
-        <path d="M300 664H400" markerEnd={a} />
-        <path d="M430 636V548" markerEnd={a} />
+        <path d="M358 130H438" markerEnd={a} />
+        <path d="M498 130H578" markerEnd={a} />
+        <path d="M638 130H718" markerEnd={a} />
+        <path d="M778 130H858" markerEnd={a} />
+        <path d="M918 130H1008" markerEnd={a} />
+        <path d="M1040 200V262H290V410H300" markerEnd={a} />
+        <path d="M358 410H438" markerEnd={a} />
+        <path d="M498 410H541" markerEnd={a} />
+        <path d="M775 410H815" markerEnd={a} />
+        <path d="M875 410H939" markerEnd={a} />
+        <path d="M991 410H1026" markerEnd={a} />
+        <path d="M1066 674H1140" markerEnd={a} />
+        <path d="M138 674H240" markerEnd={a} />
+        <path d="M300 674H400" markerEnd={a} />
+        <path d="M430 646V558" markerEnd={a} />
       </g>
       <g stroke={ink} strokeWidth="1.2" strokeDasharray="5 4">
-        <path d="M480 102V64H180V100" markerEnd={a} />
-        <path d="M866 470V636" markerEnd={a} />
-        <path d="M1012 636V496" markerEnd={a} />
-        <path d="M460 664H574" markerEnd={a} />
+        <path d="M470 102V64H180V100" markerEnd={a} />
+        <path d="M1050 494V646" markerEnd={a} />
+        <path d="M1170 646V496" markerEnd={a} />
+        <path d="M460 674H574" markerEnd={a} />
       </g>
 
       {/* CI */}
@@ -911,77 +923,83 @@ function PipelineWide() {
       </Note>
       <Tile logo="github" x={180} y={130} lines={["GitHub"]} />
       <Tile logo="jenkins" x={330} y={130} lines={["Build & unit test"]} sub="Jenkins" />
-      <Tile logo="sonarqubeserver" x={480} y={130} lines={["Quality gate"]} sub="SonarQube" />
-      <Tile logo="sonatype" x={630} y={130} lines={["Publish artifact"]} sub="Nexus" />
-      <Tile logo="docker" x={780} y={130} lines={["Build image"]} sub="Docker" />
-      <Icon name="ecr" x={950} y={130} size={52} lines={["Amazon ECR"]} />
-      <Note x={950} y={190} anchor="middle">
-        scan on push
+      <Tile logo="sonarqubeserver" x={470} y={130} lines={["Quality gate"]} sub="SonarQube" />
+      <Tile logo="sonatype" x={610} y={130} lines={["Publish artifact"]} sub="Nexus" />
+      <Tile logo="docker" x={750} y={130} lines={["Build image"]} sub="Docker" />
+      <Tile logo="trivy" x={890} y={130} lines={["Image scan"]} sub="Trivy" />
+      <Note x={890} y={206} anchor="middle" size={9.5}>
+        critical CVEs block it
       </Note>
+      <Icon name="ecr" x={1040} y={130} size={52} lines={["Amazon ECR"]} />
       <Note x={234} y={120} anchor="middle">
         webhook
       </Note>
-      <Note x={490} y={60}>
+      <Note x={480} y={60}>
         gate fails → build stops, status to GitHub
       </Note>
-      <Note x={282} y={232}>
+      <Note x={282} y={236}>
         PRs run steps 2–3 · main runs everything · one build, tagged with the commit SHA
       </Note>
 
       {/* CD */}
-      <Note x={516} y={284}>
-        promote the same build
+      <Note x={346} y={282}>
+        Jenkins commits the new image tag
       </Note>
-      <Icon name="eks" x={345} y={410} size={44} lines={["EKS"]} labelSize={11.5} />
-      <Icon name="ec2" x={465} y={410} size={44} lines={["EC2"]} labelSize={11.5} />
-      <Tile logo="jenkins" x={600} y={410} lines={["Smoke &", "integration tests"]} labelSize={11.5} />
-      <Icon name="users" x={730} y={410} size={44} lines={["Approval"]} labelSize={11.5} />
-      <Note x={730} y={466} anchor="middle" size={9.5}>
-        Jenkins input
+      <Tile logo="helm" x={330} y={410} lines={["GitOps repo"]} sub="Helm chart + values" labelSize={11.5} />
+      <Tile logo="argo" x={470} y={410} lines={["Argo CD"]} sub="auto-sync" labelSize={11.5} />
+      <Icon name="eks" x={605} y={410} size={44} lines={["EKS"]} labelSize={11.5} />
+      <Icon name="ec2" x={715} y={410} size={44} lines={["EC2"]} labelSize={11.5} />
+      <Tile logo="jenkins" x={845} y={410} lines={["Smoke &", "integration tests"]} labelSize={11.5} />
+      <Icon name="users" x={965} y={410} size={44} lines={["Approval"]} labelSize={11.5} />
+      <Note x={965} y={466} anchor="middle" size={9.5}>
+        PR to prod values
       </Note>
-      <Icon name="eks" x={866} y={410} size={44} lines={["EKS"]} labelSize={11.5} />
-      <Icon name="ec2" x={996} y={410} size={44} lines={["EC2"]} labelSize={11.5} />
-      <Note x={931} y={478} anchor="middle">
-        rolling deploy
+      <Icon name="eks" x={1075} y={410} size={40} lines={["EKS"]} labelSize={11.5} />
+      <Icon name="ec2" x={1165} y={410} size={40} lines={["EC2"]} labelSize={11.5} />
+      <Note x={1120} y={478} anchor="middle" size={9.5}>
+        Argo CD sync · rolling
       </Note>
-      <Icon name="iam" x={302} y={516} size={28} />
-      <Note x={324} y={520}>
-        Jenkins uses IAM roles · no stored keys
+      <Icon name="iam" x={286} y={526} size={26} />
+      <Note x={306} y={530}>
+        EC2 hosts get the Nexus artifact from Jenkins · IAM roles, no stored keys
       </Note>
 
       {/* Monitoring */}
-      <Tile logo="prometheus" x={866} y={664} lines={["Prometheus"]} labelSize={11.5} />
-      <Tile logo="grafana" x={1012} y={664} lines={["Grafana"]} labelSize={11.5} />
-      <Note x={856} y={572} anchor="end">
+      <Tile logo="prometheus" x={1040} y={674} lines={["Prometheus"]} labelSize={11.5} />
+      <Tile logo="grafana" x={1170} y={674} lines={["Grafana"]} labelSize={11.5} />
+      <Note x={1040} y={580} anchor="end">
         metrics
       </Note>
-      <Note x={1024} y={572}>
+      <Note x={1180} y={580}>
         rollback
       </Note>
 
       {/* Infrastructure */}
-      <Tile logo="terraform" x={110} y={664} lines={["Plan"]} sub="on pull request" labelSize={11.5} />
-      <Icon name="users" x={270} y={664} size={44} lines={["Approval"]} labelSize={11.5} />
-      <Tile logo="terraform" x={430} y={664} lines={["Apply"]} labelSize={11.5} />
-      <Icon name="s3" x={606} y={664} size={44} lines={["Remote state"]} labelSize={11.5} />
-      <Note x={606} y={724} anchor="middle" size={9.5}>
+      <Tile logo="terraform" x={110} y={674} lines={["Plan"]} sub="on pull request" labelSize={11.5} />
+      <Icon name="users" x={270} y={674} size={44} lines={["Approval"]} labelSize={11.5} />
+      <Tile logo="terraform" x={430} y={674} lines={["Apply"]} labelSize={11.5} />
+      <Icon name="s3" x={606} y={674} size={44} lines={["Remote state"]} labelSize={11.5} />
+      <Note x={606} y={734} anchor="middle" size={9.5}>
         Amazon S3
       </Note>
-      <Note x={442} y={600}>
+      <Note x={442} y={610}>
         provisions staging & production
       </Note>
 
-      <Badge x={118} y={112} n={1} />
-      <Badge x={234} y={98} n={2} />
-      <Badge x={403} y={112} n={3} />
-      <Badge x={553} y={112} n={4} />
-      <Badge x={703} y={112} n={5} />
-      <Badge x={863} y={112} n={6} />
-      <Badge x={720} y={262} n={7} />
-      <Badge x={549} y={392} n={8} />
-      <Badge x={665} y={392} n={9} />
-      <Badge x={778} y={392} n={10} />
-      <Badge x={866} y={556} n={11} />
+      <Badge x={116} y={112} n={1} />
+      <Badge x={244} y={98} n={2} />
+      <Badge x={408} y={112} n={3} />
+      <Badge x={548} y={112} n={4} />
+      <Badge x={688} y={112} n={5} />
+      <Badge x={828} y={112} n={6} />
+      <Badge x={968} y={112} n={7} />
+      <Badge x={720} y={262} n={8} />
+      <Badge x={408} y={392} n={9} />
+      <Badge x={520} y={392} n={10} />
+      <Badge x={795} y={392} n={11} />
+      <Badge x={907} y={392} n={12} />
+      <Badge x={1008} y={392} n={13} />
+      <Badge x={1050} y={548} n={14} />
     </svg>
   );
 }
@@ -993,40 +1011,47 @@ function PipelineCompact() {
     { logo: "sonarqubeserver", name: "Quality gate", tool: "SonarQube", y: 274 },
     { logo: "sonatype", name: "Publish artifact", tool: "Nexus", y: 372 },
     { logo: "docker", name: "Build image", tool: "Docker", y: 470 },
+    { logo: "trivy", name: "Image scan", tool: "Trivy · critical CVEs block it", y: 568 },
+  ];
+  const cd = [
+    { logo: "helm", name: "GitOps repo", tool: "Helm chart + values", y: 966, n: 9 },
+    { logo: "argo", name: "Argo CD", tool: "auto-sync from Git", y: 1064, n: 10 },
   ];
   return (
-    <svg viewBox="0 0 400 1740" className="block h-auto w-full" fill="none">
+    <svg viewBox="0 0 400 2090" className="block h-auto w-full" fill="none">
       <defs>
         <Arrowhead id="cicd-arrow-c" color={ink} />
       </defs>
 
-      <Box x={16} y={108} w={368} h={560} label="Continuous integration" logo="jenkins" />
-      <Box x={16} y={720} w={368} h={560} label="Continuous delivery" logo="jenkins" />
-      <Box x={32} y={760} w={336} h={124} label="Staging" />
-      <Box x={32} y={1094} w={336} h={124} label="Production" />
-      <Box x={16} y={1320} w={368} h={124} label="Monitoring" />
-      <Box x={16} y={1480} w={368} h={248} label="Infrastructure · Terraform" logo="terraform" />
+      <Box x={16} y={108} w={368} h={752} label="Continuous integration" logo="jenkins" />
+      <Box x={16} y={890} w={368} h={740} label="Continuous delivery · GitOps" logo="argo" />
+      <Box x={32} y={1114} w={336} h={120} label="Staging" />
+      <Box x={32} y={1438} w={336} h={120} label="Production" />
+      <Box x={16} y={1664} w={368} h={124} label="Monitoring" />
+      <Box x={16} y={1820} w={368} h={256} label="Infrastructure · Terraform" logo="terraform" />
 
       <g stroke={ink} strokeWidth="1.3">
         <path d="M138 44H252" markerEnd={a} />
         <path d="M290 70V140H110V146" markerEnd={a} />
         {ci.map((stage, i) => (
-          <path key={stage.y} d={`M110 ${stage.y + 26}V${(ci[i + 1]?.y ?? 568) - 30}`} markerEnd={a} />
+          <path key={stage.y} d={`M110 ${stage.y + 26}V${(ci[i + 1]?.y ?? 666) - 30}`} markerEnd={a} />
         ))}
-        <path d="M110 596V700H200V756" markerEnd={a} />
-        <path d="M200 884V922" markerEnd={a} />
-        <path d="M200 978V1012" markerEnd={a} />
-        <path d="M200 1064V1090" markerEnd={a} />
-        <path d="M144 1382H256" markerEnd={a} />
-        <path d="M110 1560H170" markerEnd={a} />
-        <path d="M230 1560H290" markerEnd={a} />
+        <path d="M110 694V880H110V936" markerEnd={a} />
+        <path d="M110 992V1034" markerEnd={a} />
+        <path d="M110 1090V1110" markerEnd={a} />
+        <path d="M200 1234V1252H110V1270" markerEnd={a} />
+        <path d="M110 1326V1360" markerEnd={a} />
+        <path d="M110 1404V1420H200V1434" markerEnd={a} />
+        <path d="M144 1726H256" markerEnd={a} />
+        <path d="M110 1900H170" markerEnd={a} />
+        <path d="M230 1900H290" markerEnd={a} />
       </g>
       <g stroke={ink} strokeWidth="1.1" strokeDasharray="4 4">
         <path d="M84 274H28V44H84" markerEnd={a} />
-        <path d="M110 1218V1352" markerEnd={a} />
-        <path d="M284 1352V1222" markerEnd={a} />
-        <path d="M320 1590V1630H230" markerEnd={a} />
-        <path d="M392 1520V1000H388" markerEnd={a} />
+        <path d="M140 1558V1696" markerEnd={a} />
+        <path d="M284 1696V1562" markerEnd={a} />
+        <path d="M320 1930V1970H230" markerEnd={a} />
+        <path d="M392 1860V1170H372" markerEnd={a} />
       </g>
 
       <Icon name="client" x={110} y={44} size={40} />
@@ -1049,63 +1074,74 @@ function PipelineCompact() {
           </Note>
         </g>
       ))}
-      <Icon name="ecr" x={110} y={570} size={48} />
-      <Halo x={152} y={568} anchor="start" size={15}>
-        06  Push image
+      <Icon name="ecr" x={110} y={666} size={48} />
+      <Halo x={152} y={664} anchor="start" size={15}>
+        07  Push image
       </Halo>
-      <Note x={152} y={585} size={9.5}>
-        Amazon ECR · scan on push
+      <Note x={152} y={681} size={9.5}>
+        Amazon ECR
       </Note>
       <Note x={36} y={262} size={9}>
         fail
       </Note>
-      <Note x={32} y={650} size={9}>
+      <Note x={32} y={736} size={9}>
         one build · tagged with the commit SHA
       </Note>
-
-      <Note x={210} y={716} size={9}>
-        07 promote
+      <Note x={122} y={830} size={9}>
+        08 Jenkins commits the image tag
       </Note>
-      <Icon name="eks" x={140} y={822} size={36} lines={["EKS"]} labelSize={10.5} />
-      <Icon name="ec2" x={260} y={822} size={36} lines={["EC2"]} labelSize={10.5} />
-      <Tile logo="jenkins" x={110} y={950} size={48} />
-      <Halo x={150} y={948} anchor="start" size={15}>
-        08  Smoke tests
+
+      {cd.map((stage) => (
+        <g key={stage.name}>
+          <Tile logo={stage.logo} x={110} y={stage.y} size={52} />
+          <Halo x={152} y={stage.y - 2} anchor="start" size={15}>
+            {`${stage.n < 10 ? "0" : ""}${stage.n}  ${stage.name}`}
+          </Halo>
+          <Note x={152} y={stage.y + 15} size={9.5}>
+            {stage.tool}
+          </Note>
+        </g>
+      ))}
+      <Icon name="eks" x={140} y={1176} size={36} lines={["EKS"]} labelSize={10.5} />
+      <Icon name="ec2" x={260} y={1176} size={36} lines={["EC2"]} labelSize={10.5} />
+      <Tile logo="jenkins" x={110} y={1298} size={48} />
+      <Halo x={150} y={1296} anchor="start" size={15}>
+        11  Smoke tests
       </Halo>
-      <Note x={150} y={964} size={9.5}>
+      <Note x={150} y={1312} size={9.5}>
         integration checks
       </Note>
-      <Icon name="users" x={110} y={1040} size={40} />
-      <Halo x={150} y={1038} anchor="start" size={15}>
-        09  Approval
+      <Icon name="users" x={110} y={1384} size={40} />
+      <Halo x={150} y={1382} anchor="start" size={15}>
+        12  Approval
       </Halo>
-      <Note x={150} y={1054} size={9.5}>
-        Jenkins input
+      <Note x={150} y={1398} size={9.5}>
+        PR to prod values
       </Note>
-      <Icon name="eks" x={140} y={1156} size={36} lines={["EKS"]} labelSize={10.5} />
-      <Icon name="ec2" x={260} y={1156} size={36} lines={["EC2"]} labelSize={10.5} />
-      <Note x={200} y={1244} anchor="middle" size={9.5}>
-        10 rolling deploy
+      <Icon name="eks" x={140} y={1500} size={36} lines={["EKS"]} labelSize={10.5} />
+      <Icon name="ec2" x={260} y={1500} size={36} lines={["EC2"]} labelSize={10.5} />
+      <Note x={200} y={1584} anchor="middle" size={9.5}>
+        13 Argo CD sync · rolling
       </Note>
-      <Icon name="iam" x={46} y={1264} size={22} />
-      <Note x={64} y={1268} size={9}>
-        IAM roles · no stored keys
+      <Icon name="iam" x={44} y={1608} size={20} />
+      <Note x={60} y={1612} size={8.5}>
+        EC2 gets the Nexus artifact · IAM roles, no keys
       </Note>
 
-      <Tile logo="prometheus" x={116} y={1382} size={44} lines={["Prometheus"]} labelSize={10.5} />
-      <Tile logo="grafana" x={284} y={1382} size={44} lines={["Grafana"]} labelSize={10.5} />
-      <Note x={120} y={1300} size={9}>
-        11 metrics
+      <Tile logo="prometheus" x={116} y={1726} size={44} lines={["Prometheus"]} labelSize={10.5} />
+      <Tile logo="grafana" x={284} y={1726} size={44} lines={["Grafana"]} labelSize={10.5} />
+      <Note x={150} y={1652} size={9}>
+        14 metrics
       </Note>
-      <Note x={276} y={1300} anchor="end" size={9}>
+      <Note x={276} y={1652} anchor="end" size={9}>
         rollback
       </Note>
 
-      <Tile logo="terraform" x={80} y={1560} size={48} lines={["Plan"]} labelSize={10.5} />
-      <Icon name="users" x={200} y={1560} size={40} lines={["Approval"]} labelSize={10.5} />
-      <Tile logo="terraform" x={320} y={1560} size={48} lines={["Apply"]} labelSize={10.5} />
-      <Icon name="s3" x={200} y={1650} size={40} lines={["Remote state · S3"]} labelSize={10.5} />
-      <Note x={372} y={1500} anchor="end" size={9}>
+      <Tile logo="terraform" x={80} y={1900} size={48} lines={["Plan"]} labelSize={10.5} />
+      <Icon name="users" x={200} y={1900} size={40} lines={["Approval"]} labelSize={10.5} />
+      <Tile logo="terraform" x={320} y={1900} size={48} lines={["Apply"]} labelSize={10.5} />
+      <Icon name="s3" x={200} y={1990} size={40} lines={["Remote state · S3"]} labelSize={10.5} />
+      <Note x={372} y={1840} anchor="end" size={9}>
         provisions environments ↑
       </Note>
     </svg>
@@ -1119,18 +1155,20 @@ export function PipelineFigure({ number, className }: { number: string; classNam
       className={className}
       caption={
         <>
-          Pipeline design. CI: (1) a push or pull request triggers Jenkins by (2) GitHub webhook; (3) build and unit tests;
-          (4) SonarQube quality gate, reporting failures to GitHub; (5) the versioned artifact goes to Nexus; (6) the Docker
-          image is pushed to Amazon ECR and scanned. Pull requests stop after the gate. CD: (7) the same build, tagged with
-          the commit SHA, deploys to staging on EKS and EC2; (8) smoke and integration tests; (9) manual approval;
-          (10) rolling deployment to production; (11) Prometheus and Grafana watch it, and failed health checks trigger a
-          rollback. Terraform runs its own plan, approval, apply pipeline with remote state in Amazon S3. Logos: Simple
-          Icons; AWS icons: AWS Architecture Icons.
+          Pipeline design. CI in Jenkins: (1) push or pull request; (2) the GitHub webhook starts build and unit tests;
+          (3) SonarQube quality gate, reporting failures to GitHub; (4) versioned artifact to Nexus; (5) Docker image;
+          (6) Trivy scan, where critical vulnerabilities stop the release; (7) push to Amazon ECR. Pull requests stop after
+          the gate. CD with GitOps: (8) Jenkins commits the new image tag to the Helm values in a GitOps repo; (9) Argo CD
+          syncs it (10) to staging; (11) smoke and integration tests; (12) an approved pull request promotes the same tag to
+          production values; (13) Argo CD rolls it out to production. EC2 hosts receive the Nexus artifact from Jenkins.
+          (14) Prometheus and Grafana watch production, and failed health triggers a rollback to the previous revision.
+          Terraform runs its own plan, approval, apply pipeline with remote state in Amazon S3. Logos: Simple Icons; AWS
+          icons: AWS Architecture Icons.
         </>
       }
     >
       <Responsive
-        label="CI/CD pipeline design. Continuous integration in Jenkins: a developer's push or pull request reaches GitHub, which triggers Jenkins by webhook; Jenkins builds and runs unit tests, runs a SonarQube quality gate that reports failures back to GitHub, publishes the versioned artifact to Nexus, builds a Docker image and pushes it to Amazon ECR, where it is scanned. Pull requests stop after the quality gate. Continuous delivery in Jenkins: the same build, tagged with the commit SHA, deploys to a staging environment on Amazon EKS and EC2, passes smoke and integration tests and a manual approval, then rolls out to production on EKS and EC2. Jenkins uses IAM roles rather than stored keys. Prometheus collects production metrics for Grafana, and failed health checks trigger a rollback. A separate Terraform pipeline plans on pull request, waits for approval, and applies, keeping remote state in Amazon S3; it provisions the staging and production environments."
+        label="CI/CD pipeline design with GitOps. Continuous integration in Jenkins: a developer's push or pull request reaches GitHub, whose webhook starts the build and unit tests; a SonarQube quality gate reports failures back to GitHub; the versioned artifact is published to Nexus; a Docker image is built, scanned with Trivy (critical vulnerabilities stop it), and pushed to Amazon ECR. Pull requests stop after the quality gate. Continuous delivery: Jenkins commits the new image tag to Helm values in a GitOps repository; Argo CD syncs it to staging on Amazon EKS; smoke and integration tests run; an approved pull request promotes the same tag to production values, and Argo CD rolls it out to production. EC2 hosts receive the Nexus artifact from Jenkins, which uses IAM roles rather than stored keys. Prometheus and Grafana watch production, and failed health triggers a rollback. A separate Terraform pipeline plans on pull request, waits for approval, and applies, keeping remote state in Amazon S3; it provisions staging and production."
         wide={<PipelineWide />}
         compact={<PipelineCompact />}
       />

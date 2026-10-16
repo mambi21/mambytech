@@ -74,23 +74,26 @@ const profile: ProfileInput = {
     },
     {
       area: "Containers & Kubernetes",
-      summary: "Packaging workloads with Docker and running them on Kubernetes, including EKS clusters with self-managed nodes: deployments, services, ingress, upgrades, and troubleshooting.",
+      summary: "Packaging workloads with Docker and running them on Kubernetes, including EKS clusters: Helm charts, GitOps delivery with Argo CD, ingress, upgrades, and troubleshooting.",
       tools: [
         { name: "Docker", confirmed: true },
         { name: "Kubernetes", confirmed: true },
         { name: "EKS", confirmed: true },
+        { name: "Helm", confirmed: true },
+        { name: "Argo CD", confirmed: true },
       ],
       evidence: ["cicd-pipeline"],
     },
     {
       area: "CI/CD & automation",
-      summary: "Building delivery pipelines with code-quality and artifact stages, and automating configuration and maintenance.",
+      summary: "Building delivery pipelines with quality gates, image scanning, and versioned artifacts, and automating configuration and maintenance.",
       tools: [
         { name: "Jenkins", confirmed: true },
         { name: "GitHub", confirmed: true },
         { name: "GitHub Actions", confirmed: true },
         { name: "SonarQube", confirmed: true },
         { name: "Nexus", confirmed: true },
+        { name: "Trivy", confirmed: true },
         { name: "Ansible", confirmed: true },
         { name: "Bash", confirmed: true },
       ],
