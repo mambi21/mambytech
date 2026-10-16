@@ -790,6 +790,267 @@ export function GlomafPlatformFigure({ number, className }: { number: string; cl
 }
 
 /* ------------------------------------------------------------------ */
+/* Fig. — CI/CD pipeline                                               */
+/* ------------------------------------------------------------------ */
+
+/** A third-party tool logo (Simple Icons, public/tool-icons) on a white tile, draw.io style. */
+function Tile({
+  logo,
+  x,
+  y,
+  size = 52,
+  lines = [],
+  sub,
+  labelSize = 12,
+  halo = paper,
+}: {
+  logo: string;
+  x: number;
+  y: number;
+  size?: number;
+  lines?: string[];
+  sub?: string;
+  labelSize?: number;
+  halo?: string;
+}) {
+  const inner = size * 0.58;
+  return (
+    <g>
+      <rect x={x - size / 2} y={y - size / 2} width={size} height={size} rx="7" fill={white} stroke={rule} strokeWidth="1.25" />
+      <image href={`/tool-icons/${logo}.svg`} x={x - inner / 2} y={y - inner / 2} width={inner} height={inner} />
+      {lines.map((line, i) => (
+        <Halo key={line} x={x} y={y + size / 2 + labelSize + 5 + i * (labelSize + 3)} size={labelSize} halo={halo}>
+          {line}
+        </Halo>
+      ))}
+      {sub ? (
+        <Halo x={x} y={y + size / 2 + labelSize + 5 + lines.length * (labelSize + 3)} size={labelSize - 2} weight={400} fill={subtle} halo={halo} mono>
+          {sub.toUpperCase()}
+        </Halo>
+      ) : null}
+    </g>
+  );
+}
+
+function Badge({ x, y, n }: { x: number; y: number; n: number }) {
+  return (
+    <g>
+      <circle cx={x} cy={y} r="10" fill={brand} />
+      <text x={x} y={y + 3.8} textAnchor="middle" fill={paper} fontSize="11" className="font-mono">
+        {n}
+      </text>
+    </g>
+  );
+}
+
+/** A plain dashed group with a label, used for non-AWS boundaries. */
+function Box({ x, y, w, h, label, logo }: { x: number; y: number; w: number; h: number; label: string; logo?: string }) {
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} fill="none" stroke={aws.grey} strokeWidth="1.25" strokeDasharray="6 4" />
+      {logo ? <image href={`/tool-icons/${logo}.svg`} x={x + 8} y={y + 7} width="16" height="16" /> : null}
+      <text x={x + (logo ? 30 : 10)} y={y + 20} fill={subtle} fontSize="12" fontWeight={500} className="font-sans">
+        {label}
+      </text>
+    </g>
+  );
+}
+
+function PipelineWide() {
+  const a = "url(#cicd-arrow-w)";
+  return (
+    <svg viewBox="0 0 1000 650" className="block h-auto w-full" fill="none">
+      <defs>
+        <Arrowhead id="cicd-arrow-w" color={ink} />
+      </defs>
+
+      {/* Groups */}
+      <Box x={264} y={40} w={716} h={210} label="Jenkins pipeline" logo="jenkins" />
+      <Group kind="cloud" x={420} y={300} w={560} h={186} label="AWS Cloud" />
+      <Box x={420} y={520} w={560} h={116} label="Monitoring" />
+      <Box x={20} y={300} w={360} h={186} label="Infrastructure as code" />
+
+      {/* Flow */}
+      <g stroke={ink} strokeWidth="1.4">
+        <path d="M84 130H148" markerEnd={a} />
+        <path d="M208 130H298" markerEnd={a} />
+        <path d="M358 130H458" markerEnd={a} />
+        <path d="M518 130H618" markerEnd={a} />
+        <path d="M678 130H778" markerEnd={a} />
+        <path d="M810 202V272H900V352" markerEnd={a} />
+        <path d="M650 202V284H530V352" markerEnd={a} />
+        <path d="M876 380H728" markerEnd={a} />
+        <path d="M624 578H786" markerEnd={a} />
+      </g>
+      <g stroke={ink} strokeWidth="1.2" strokeDasharray="5 4">
+        <path d="M490 102V66H180V100" markerEnd={a} />
+        <path d="M530 436V500H586V548" markerEnd={a} />
+        <path d="M700 436V500H614V548" markerEnd={a} />
+        <path d="M380 393H414" markerEnd={a} />
+      </g>
+
+      {/* Nodes */}
+      <Icon name="client" x={56} y={130} size={48} lines={["Developer"]} />
+      <Halo x={56} y={186} size={10} weight={400} fill={subtle} mono>
+        PUSH · PR
+      </Halo>
+      <Tile logo="github" x={180} y={130} lines={["GitHub"]} />
+      <Tile logo="jenkins" x={330} y={130} lines={["Build & test"]} sub="Jenkins" />
+      <Tile logo="sonarqubeserver" x={490} y={130} lines={["Quality gate"]} sub="SonarQube" />
+      <Tile logo="sonatype" x={650} y={130} lines={["Publish artifact"]} sub="Nexus" />
+      <Tile logo="docker" x={810} y={130} lines={["Build image"]} sub="Docker" />
+
+      <Icon name="ec2" x={530} y={380} size={48} lines={["Amazon EC2"]} />
+      <Icon name="eks" x={700} y={380} size={48} lines={["Amazon EKS"]} />
+      <Icon name="ecr" x={900} y={380} size={48} lines={["Amazon ECR"]} />
+
+      <Tile logo="prometheus" x={600} y={578} lines={["Prometheus"]} labelSize={11.5} />
+      <Tile logo="grafana" x={812} y={578} lines={["Grafana"]} labelSize={11.5} />
+
+      <Tile logo="terraform" x={92} y={386} lines={["Terraform"]} />
+      <Halo x={150} y={376} anchor="start" size={11} weight={400} fill={subtle} mono>
+        PROVISIONS VPC, EKS,
+      </Halo>
+      <Halo x={150} y={392} anchor="start" size={11} weight={400} fill={subtle} mono>
+        EC2 AND NETWORKING
+      </Halo>
+
+      {/* Edge labels */}
+      <Halo x={234} y={120} size={10} weight={400} fill={subtle} mono>
+        WEBHOOK
+      </Halo>
+      <Halo x={500} y={60} anchor="start" size={10} weight={400} fill={subtle} mono>
+        GATE FAILS → BUILD STOPS, STATUS TO GITHUB
+      </Halo>
+      <Halo x={830} y={266} anchor="start" size={10} weight={400} fill={subtle} mono>
+        PUSH IMAGE
+      </Halo>
+      <Halo x={548} y={278} anchor="start" size={10} weight={400} fill={subtle} mono>
+        DEPLOY ARTIFACT
+      </Halo>
+      <Halo x={802} y={372} size={10} weight={400} fill={subtle} mono halo={paper}>
+        PULL IMAGE
+      </Halo>
+      <Halo x={636} y={516} size={10} weight={400} fill={subtle} mono>
+        METRICS
+      </Halo>
+
+      <Badge x={120} y={112} n={1} />
+      <Badge x={234} y={98} n={2} />
+      <Badge x={408} y={112} n={3} />
+      <Badge x={568} y={112} n={4} />
+      <Badge x={728} y={112} n={5} />
+      <Badge x={810} y={240} n={6} />
+      <Badge x={650} y={240} n={7} />
+      <Badge x={700} y={470} n={8} />
+    </svg>
+  );
+}
+
+function PipelineCompact() {
+  const a = "url(#cicd-arrow-c)";
+  const stages = [
+    { logo: "jenkins", name: "Build & test", tool: "Jenkins", y: 182 },
+    { logo: "sonarqubeserver", name: "Quality gate", tool: "SonarQube", y: 280 },
+    { logo: "sonatype", name: "Publish artifact", tool: "Nexus", y: 378 },
+    { logo: "docker", name: "Build image", tool: "Docker", y: 476 },
+  ];
+  return (
+    <svg viewBox="0 0 400 1084" className="block h-auto w-full" fill="none">
+      <defs>
+        <Arrowhead id="cicd-arrow-c" color={ink} />
+      </defs>
+
+      <Box x={16} y={112} w={368} h={432} label="Jenkins pipeline" logo="jenkins" />
+      <Group kind="cloud" x={16} y={600} w={368} h={176} label="AWS Cloud" size={11} icon={20} />
+      <Box x={16} y={808} w={368} h={124} label="Monitoring" />
+      <Box x={16} y={964} w={368} h={108} label="Infrastructure as code" />
+
+      <g stroke={ink} strokeWidth="1.3">
+        <path d="M138 44H252" markerEnd={a} />
+        <path d="M290 70V144H110V152" markerEnd={a} />
+        {stages.slice(0, -1).map((stage, i) => (
+          <path key={stage.y} d={`M110 ${stage.y + 26}V${stages[i + 1].y - 30}`} markerEnd={a} />
+        ))}
+        <path d="M110 502V570H320V646" markerEnd={a} />
+        <path d="M84 378H44V580H80V646" markerEnd={a} />
+        <path d="M296 672H226" markerEnd={a} />
+        <path d="M144 870H256" markerEnd={a} />
+      </g>
+      <g stroke={ink} strokeWidth="1.1" strokeDasharray="4 4">
+        <path d="M84 280H28V44H84" markerEnd={a} />
+        <path d="M80 720V790H106V840" markerEnd={a} />
+        <path d="M200 720V790H126V840" markerEnd={a} />
+        <path d="M8 1018V688H14" markerEnd={a} />
+      </g>
+
+      <Icon name="client" x={110} y={44} size={40} />
+      <Halo x={110} y={86} size={11}>
+        Developer
+      </Halo>
+      <Tile logo="github" x={290} y={44} size={48} />
+      <Halo x={290} y={86} size={11}>
+        GitHub
+      </Halo>
+
+      {stages.map((stage, i) => (
+        <g key={stage.name}>
+          <Tile logo={stage.logo} x={110} y={stage.y} size={52} />
+          <Halo x={152} y={stage.y - 2} anchor="start" size={15}>
+            {`0${i + 2}  ${stage.name}`}
+          </Halo>
+          <Halo x={152} y={stage.y + 15} anchor="start" size={10} weight={400} fill={subtle} mono>
+            {stage.tool.toUpperCase()}
+          </Halo>
+        </g>
+      ))}
+      <Halo x={36} y={268} anchor="start" size={9.5} weight={400} fill={subtle} mono>
+        FAIL
+      </Halo>
+
+      <Icon name="ec2" x={80} y={672} size={40} lines={["EC2"]} labelSize={11} />
+      <Icon name="eks" x={200} y={672} size={40} lines={["EKS"]} labelSize={11} />
+      <Icon name="ecr" x={320} y={672} size={40} lines={["ECR"]} labelSize={11} />
+
+      <Tile logo="prometheus" x={116} y={870} size={48} lines={["Prometheus"]} labelSize={11} />
+      <Tile logo="grafana" x={284} y={870} size={48} lines={["Grafana"]} labelSize={11} />
+
+      <Tile logo="terraform" x={76} y={1022} size={48} />
+      <Halo x={116} y={1016} anchor="start" size={14}>
+        Terraform
+      </Halo>
+      <Halo x={116} y={1032} anchor="start" size={9.5} weight={400} fill={subtle} mono>
+        PROVISIONS VPC, EKS, EC2
+      </Halo>
+    </svg>
+  );
+}
+
+export function PipelineFigure({ number, className }: { number: string; className?: string }) {
+  return (
+    <Plate
+      number={number}
+      className={className}
+      caption={
+        <>
+          Pipeline design: (1) a push or pull request triggers Jenkins through a GitHub webhook; (2) build and unit tests;
+          (3) SonarQube quality gate, which stops the build and reports to GitHub on failure; (4) the versioned artifact is
+          published to Nexus; (5) a Docker image is built and (6) pushed to Amazon ECR; (7) EC2 receives the artifact and
+          Amazon EKS pulls the image; (8) Prometheus collects metrics for Grafana. Terraform provisions the AWS
+          infrastructure. Logos: Simple Icons; AWS icons: AWS Architecture Icons.
+        </>
+      }
+    >
+      <Responsive
+        label="CI/CD pipeline diagram. A developer pushes to GitHub, which triggers a Jenkins pipeline by webhook. Jenkins builds and tests the code, runs a SonarQube quality gate (a failure stops the build and reports back to GitHub), publishes the artifact to Nexus, and builds a Docker image that is pushed to Amazon ECR. The Nexus artifact is deployed to Amazon EC2 and Amazon EKS pulls the image from ECR. Prometheus collects metrics from EC2 and EKS for Grafana dashboards. Terraform provisions the VPC, EKS, EC2 and networking."
+        wide={<PipelineWide />}
+        compact={<PipelineCompact />}
+      />
+    </Plate>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Lookup                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -799,6 +1060,8 @@ export function ProjectFigure({ name, number, className }: { name: FigureName; n
       return <AwsThreeTierFigure number={number} className={className} />;
     case "linux-operations":
       return <LinuxOperationsFigure number={number} className={className} />;
+    case "cicd-pipeline":
+      return <PipelineFigure number={number} className={className} />;
     case "glomaf-platform":
       return <GlomafPlatformFigure number={number} className={className} />;
   }

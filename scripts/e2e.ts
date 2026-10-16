@@ -29,7 +29,7 @@ const check = (condition: unknown, message: string) => {
 
 const pages = ["/", "/about", "/projects", "/contact", "/privacy"];
 if (MODE === "preview") {
-  pages.push("/projects/aws-infrastructure", "/projects/linux-automation", "/projects/glomaf", "/blog", "/blog/rhel-production-patching");
+  pages.push("/projects/aws-infrastructure", "/projects/linux-automation", "/projects/cicd-pipeline", "/projects/glomaf", "/blog", "/blog/rhel-production-patching");
 }
 
 async function axe(page: Page) {

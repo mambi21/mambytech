@@ -70,7 +70,7 @@ const profile: ProfileInput = {
       area: "Infrastructure as code",
       summary: "Provisioning environments with Terraform modules, so they can be reviewed, repeated, and kept consistent.",
       tools: [{ name: "Terraform", confirmed: true }],
-      evidence: [],
+      evidence: ["cicd-pipeline"],
     },
     {
       area: "Containers & Kubernetes",
@@ -80,7 +80,7 @@ const profile: ProfileInput = {
         { name: "Kubernetes", confirmed: true },
         { name: "EKS", confirmed: true },
       ],
-      evidence: [],
+      evidence: ["cicd-pipeline"],
     },
     {
       area: "CI/CD & automation",
@@ -94,7 +94,7 @@ const profile: ProfileInput = {
         { name: "Ansible", confirmed: true },
         { name: "Bash", confirmed: true },
       ],
-      evidence: ["linux-automation"],
+      evidence: ["linux-automation", "cicd-pipeline"],
     },
     {
       area: "Networking & security",
@@ -121,7 +121,7 @@ const profile: ProfileInput = {
         { name: "CloudTrail", confirmed: true },
         { name: "Incident response", confirmed: true },
       ],
-      evidence: [],
+      evidence: ["cicd-pipeline"],
     },
     {
       area: "Software engineering",

@@ -46,7 +46,7 @@ export const projectStatuses = {
 export const projectLinkKinds = ["repository", "live", "documentation", "other"] as const;
 
 /** Technical figures drawn in code (see components/figures.tsx). Use one only if it matches the real system. */
-export const projectFigures = ["aws-three-tier", "linux-operations", "glomaf-platform"] as const;
+export const projectFigures = ["aws-three-tier", "linux-operations", "cicd-pipeline", "glomaf-platform"] as const;
 
 /**
  * - draft: never shown in production.
