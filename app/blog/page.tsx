@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ArticleGrid } from "@/components/articles";
+import { ArticleList } from "@/components/articles";
 import { Container, PageHeader } from "@/components/ui";
 import { getWriting } from "@/lib/content";
 import { pageMetadata } from "@/lib/metadata";
 import { isPreview } from "@/lib/preview";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Blog",
+  title: "Writing",
   description: "Technical articles by Ibrahima Mamby Bah on Linux, AWS, infrastructure as code, and automation.",
   path: "/blog",
 });
@@ -19,18 +19,18 @@ export default function BlogPage() {
 
   return (
     <>
-      <PageHeader label="Blog" title="Engineering notes">
+      <PageHeader label="Writing" title="Notes from the work">
         <p>Practical write-ups from operating Linux systems, AWS infrastructure, and automation.</p>
       </PageHeader>
-      <Container className="pt-12">
+      <Container className="pb-24">
         {isPreview ? (
-          <p className="mb-10 rounded-xl border border-dashed border-owner-line bg-owner-bg px-4 py-3 text-[0.9375rem] text-owner">
+          <p className="mb-10 border border-dashed border-owner-line bg-owner-bg px-4 py-3 text-[0.9375rem] text-owner">
             Preview: draft posts are listed below. They stay out of production until their <code className="font-mono">publication</code> is
             set to <code className="font-mono">&quot;published&quot;</code> with a real <code className="font-mono">publishedOn</code> date.
           </p>
         ) : null}
         <h2 className="sr-only">Articles</h2>
-        <ArticleGrid posts={posts} />
+        <ArticleList posts={posts} headingLevel="h3" />
       </Container>
     </>
   );

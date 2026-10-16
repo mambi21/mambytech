@@ -85,3 +85,13 @@ describe("experience and certifications", () => {
     expect(certificationSchema.safeParse({ ...cert, verifyUrl: "http://example.com" }).success).toBe(false);
   });
 });
+
+describe("listed projects", () => {
+  it("can be listed with a pending case study, but not with placeholders in what they show", () => {
+    expect(projectSchema.safeParse({ ...awsProject, publication: "listed" }).success).toBe(true);
+    const leaky = { ...awsProject, publication: "listed", technologies: ["AWS", needs("the rest")] };
+    const result = projectSchema.safeParse(leaky);
+    expect(result.success).toBe(false);
+    expect(result.error?.issues.map((i) => i.message).join(" ")).toMatch(/Listed projects/);
+  });
+});

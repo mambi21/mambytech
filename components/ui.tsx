@@ -7,108 +7,105 @@ export function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+/** Page-width frame. Sections choose their own inner grid and measure. */
 export function Container({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cx("mx-auto w-full max-w-[76rem] px-4 sm:px-6 lg:px-8", className)}>{children}</div>;
+  return <div className={cx("mx-auto w-full max-w-[88rem] px-5 sm:px-8 lg:px-12", className)}>{children}</div>;
 }
 
-/** Small uppercase label in the brand colour, used above headings. */
-export function Eyebrow({ children, className }: { children: ReactNode; className?: string }) {
-  return <p className={cx("type-label text-brand", className)}>{children}</p>;
+/** Mono technical label. */
+export function Label({ children, className, as: Tag = "p" }: { children: ReactNode; className?: string; as?: "p" | "span" | "dt" | "h2" | "h3" }) {
+  return <Tag className={cx("type-label", className)}>{children}</Tag>;
 }
 
-/** Interior page introduction: eyebrow, bold title, optional lead, on a faint grid. */
-export function PageHeader({ label, title, children }: { label: string; title: ReactNode; children?: ReactNode }) {
-  return (
-    <div className="relative overflow-hidden border-b border-rule">
-      <div aria-hidden="true" className="bg-grid-light absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
-      <Container className="relative pt-14 pb-12 sm:pt-20 sm:pb-16">
-        <Eyebrow>{label}</Eyebrow>
-        <h1 className="type-display mt-3 max-w-3xl text-balance">{title}</h1>
-        {children ? <div className="type-lead measure mt-5">{children}</div> : null}
-      </Container>
-    </div>
-  );
-}
-
-/** Section heading: bold title on the left, an optional action (e.g. "View all") on the right. */
-export function SectionHeading({
+/**
+ * Numbered section opening: a full-width hairline, the section number and
+ * name in mono, and the section title set large on the editorial grid.
+ */
+export function SectionHead({
   id,
+  index,
+  label,
   title,
-  eyebrow,
-  children,
+  aside,
+  tone = "light",
 }: {
   id: string;
-  title: string;
-  eyebrow?: string;
-  children?: ReactNode;
+  index?: string;
+  label: string;
+  title: ReactNode;
+  aside?: ReactNode;
+  tone?: "light" | "dark";
 }) {
+  const dark = tone === "dark";
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
-      <div>
-        {eyebrow ? <Eyebrow className="mb-2">{eyebrow}</Eyebrow> : null}
-        <h2 id={id} className="type-title">
-          {title}
-        </h2>
-      </div>
-      {children ? <div className="text-[0.9375rem] text-ink-muted">{children}</div> : null}
+    <div className={cx("grid-editorial border-t pt-5", dark ? "border-term-line" : "border-ink")}>
+      <p className={cx("type-label col-span-12 md:col-span-3", dark && "text-term-dim")}>
+        {index ? <span className={dark ? "text-term-prompt" : "text-brand"}>{index}</span> : null}
+        {index ? <span aria-hidden="true"> — </span> : null}
+        {label}
+      </p>
+      <h2 id={id} className={cx("type-display col-span-12 mt-6 text-balance md:col-span-9 md:mt-0", dark && "text-white")}>
+        {title}
+      </h2>
+      {aside ? <div className="col-span-12 mt-6 md:col-span-9 md:col-start-4">{aside}</div> : null}
     </div>
   );
 }
 
-/** Rounded surface used for cards across the site. */
-export function Card({ className, children, as: Tag = "div" }: { className?: string; children: ReactNode; as?: "div" | "li" | "article" }) {
-  return <Tag className={cx("rounded-2xl border border-rule bg-white shadow-[var(--shadow-card)]", className)}>{children}</Tag>;
-}
-
-/** Compact technology chip. */
-export function Tag({ children, className }: { children: ReactNode; className?: string }) {
+/** Interior page opening: mono label, large title, optional lead, on the editorial grid. */
+export function PageHeader({ label, title, children }: { label: string; title: ReactNode; children?: ReactNode }) {
   return (
-    <span className={cx("inline-flex items-center rounded-md border border-rule bg-paper px-2 py-0.5 font-mono text-xs leading-5 text-ink-muted", className)}>
-      {children}
-    </span>
+    <Container className="pt-14 pb-14 sm:pt-20 sm:pb-20">
+      <div className="grid-editorial">
+        <p className="type-label col-span-12 md:col-span-3 md:pt-4">{label}</p>
+        <div className="col-span-12 mt-5 md:col-span-9 md:mt-0">
+          <h1 className="type-display max-w-[16ch] text-balance">{title}</h1>
+          {children ? <div className="type-lead measure mt-6">{children}</div> : null}
+        </div>
+      </div>
+    </Container>
   );
 }
 
 const buttonBase =
-  "inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-[0.9375rem] font-semibold transition-[background-color,border-color,box-shadow,transform] duration-150 active:translate-y-px";
+  "group inline-flex min-h-12 items-center justify-center gap-3 px-6 py-3 text-[0.9375rem] font-semibold tracking-[-0.005em] transition-colors duration-200";
 
 const buttonVariants = {
-  primary: "bg-brand text-paper shadow-[0_6px_16px_-8px_rgb(14_59_49/0.6)] hover:bg-brand-hover hover:shadow-[0_10px_22px_-10px_rgb(14_59_49/0.7)]",
-  secondary: "border border-field bg-white text-ink hover:border-ink",
+  primary: "bg-brand text-paper hover:bg-brand-hover",
+  secondary: "border border-ink text-ink hover:bg-ink hover:text-paper",
 } as const;
 
 export function ButtonLink({
   variant = "primary",
   className,
+  children,
   ...props
 }: ComponentProps<typeof Link> & { variant?: keyof typeof buttonVariants }) {
-  return <Link className={cx(buttonBase, buttonVariants[variant], className)} {...props} />;
+  return (
+    <Link className={cx(buttonBase, buttonVariants[variant], className)} {...props}>
+      {children}
+    </Link>
+  );
 }
 
 export function buttonClasses(variant: keyof typeof buttonVariants = "primary", className?: string) {
   return cx(buttonBase, buttonVariants[variant], className);
 }
 
-/** Quiet text link with a trailing arrow, used for secondary actions. */
+/** Text link with a trailing arrow; the underline draws in on hover. */
 export function ArrowLink({ className, children, ...props }: ComponentProps<typeof Link>) {
   return (
-    <Link
-      className={cx(
-        "group inline-flex items-center gap-1.5 font-semibold text-brand underline decoration-brand/30 decoration-1 underline-offset-4 transition-colors hover:decoration-brand",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-      <ArrowIcon className="transition-transform duration-150 group-hover:translate-x-0.5" />
+    <Link className={cx("group inline-flex items-center gap-2 font-semibold text-brand", className)} {...props}>
+      <span className="link-draw pb-0.5">{children}</span>
+      <ArrowIcon className="transition-transform duration-300 ease-[var(--ease-out-quint)] group-hover:translate-x-1" />
     </Link>
   );
 }
 
-export function ArrowIcon({ className }: { className?: string }) {
+export function ArrowIcon({ className, direction = "right" }: { className?: string; direction?: "right" | "down" }) {
   return (
-    <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className={cx("size-4 shrink-0", className)}>
-      <path d="M4 10h11m0 0-4.5-4.5M15 10l-4.5 4.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    <svg aria-hidden="true" viewBox="0 0 20 20" fill="none" className={cx("size-4 shrink-0", direction === "down" && "rotate-90", className)}>
+      <path d="M3.5 10h12m0 0-5-5m5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" />
     </svg>
   );
 }

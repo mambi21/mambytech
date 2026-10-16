@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import { ArticleGrid } from "@/components/articles";
-import { CertificationCards } from "@/components/certifications";
+import Link from "next/link";
+import { ArticleList } from "@/components/articles";
+import { CapabilitiesIndex, Credentials } from "@/components/capabilities";
 import { ExperienceTimeline } from "@/components/experience";
-import { ExpertiseCards } from "@/components/expertise";
-import { HeroVisual } from "@/components/hero-visual";
-import { ProjectGrid } from "@/components/projects";
-import { SkillsPanel } from "@/components/skills";
-import { ArrowIcon, ArrowLink, ButtonLink, Container, Eyebrow, SectionHeading } from "@/components/ui";
+import { StackFigure } from "@/components/figures";
+import { ProjectShowcase } from "@/components/projects";
+import { ArrowIcon, ArrowLink, Container, SectionHead } from "@/components/ui";
 import { getCertifications, getExperience, getFeaturedProjects, getProfile, getWriting } from "@/lib/content";
 import { pageMetadata } from "@/lib/metadata";
 import { isPreview } from "@/lib/preview";
@@ -15,7 +14,7 @@ export const metadata: Metadata = {
   ...pageMetadata({
     title: "Ibrahima Mamby Bah · MambyTech",
     description:
-      "Ibrahima Mamby Bah — Cloud Infrastructure & Linux Engineer. Building Infrastructure. Engineering Solutions. Cloud infrastructure, Linux, DevOps and software projects.",
+      "Ibrahima Mamby Bah — Cloud Infrastructure & Linux Engineer focused on building, automating, and maintaining reliable systems. Selected work across AWS, Linux operations, and product engineering.",
     path: "/",
   }),
   title: { absolute: "Ibrahima Mamby Bah · MambyTech" },
@@ -23,153 +22,159 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   const profile = getProfile();
-  const featured = getFeaturedProjects().slice(0, 3);
+  const projects = getFeaturedProjects();
   const experience = getExperience();
   const certifications = getCertifications();
-  const posts = getWriting().slice(0, 3);
-  const handle = profile.name.toLowerCase().replace(/\s+/g, "-");
-  const [firstName, ...rest] = profile.name.split(" ");
+  const posts = getWriting().slice(0, 4);
+
+  // Section numbers follow what's actually on the page.
+  const sections = [
+    projects.length > 0 && { id: "work", label: "Work" },
+    { id: "capabilities", label: "Capabilities" },
+    experience.length > 0 && { id: "experience", label: "Experience" },
+    posts.length > 0 && { id: "writing", label: "Writing" },
+  ].filter((section): section is { id: string; label: string } => Boolean(section));
+  const number = (id: string) => String(sections.findIndex((section) => section.id === id) + 1).padStart(2, "0");
+
+  const [lead, accent] = splitAccent(profile.headline);
 
   return (
     <>
-      <section aria-labelledby="intro-heading" className="relative overflow-hidden">
-        <div aria-hidden="true" className="bg-grid-light absolute inset-0 [mask-image:radial-gradient(ellipse_at_top_right,black_20%,transparent_70%)]" />
-        <div
-          aria-hidden="true"
-          className="absolute -top-40 right-[-10%] size-[42rem] rounded-full bg-[radial-gradient(closest-side,rgb(230_238_233/0.95),transparent)]"
-        />
-        <Container className="relative grid items-center gap-12 pt-12 pb-14 sm:pt-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-14 lg:pt-12 lg:pb-12">
-          <div className="min-w-0">
-            <Eyebrow>{profile.focusAreas.join(" · ")}</Eyebrow>
-            <h1 id="intro-heading" className="type-hero mt-5 text-balance">
-              Hi, I’m {firstName}{" "}
-              <span className="relative whitespace-nowrap text-brand">
-                <span className="relative z-10">{rest.join(" ")}</span>
-                <span aria-hidden="true" className="absolute inset-x-0 bottom-[0.06em] h-[0.28em] rounded-sm bg-term-prompt/45" />
-              </span>
-              .
-            </h1>
-            <p className="mt-5 text-[1.3125rem] font-semibold tracking-[-0.01em] text-ink sm:text-2xl">{profile.role}</p>
-            <p className="type-lead mt-4 max-w-[36rem]">{profile.introduction}</p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <ButtonLink href="/projects">
-                Explore My Work
-                <ArrowIcon />
-              </ButtonLink>
-              <ButtonLink href="/contact" variant="secondary">
-                Get in touch
-              </ButtonLink>
+      <section aria-labelledby="intro-heading" className="pb-24 sm:pb-32">
+        <Container>
+          <div className="type-label grid-editorial gap-y-2 border-b border-rule py-4">
+            <p className="col-span-12 sm:col-span-6 lg:col-span-3">{profile.name}</p>
+            <p className="col-span-12 hidden sm:col-span-6 sm:block lg:col-span-4">{profile.role}</p>
+            <nav aria-label="On this page" className="col-span-12 hidden lg:col-span-5 lg:block">
+              <ul className="flex justify-end gap-6">
+                {[...sections, { id: "contact", label: "Contact" }].map((section, index) => (
+                  <li key={section.id}>
+                    <a href={`#${section.id}`} className="link-draw hover:text-ink">
+                      <span className="text-brand">{String(index + 1).padStart(2, "0")}</span> {section.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+
+          <div className="grid-editorial gap-y-12 pt-12 sm:pt-16 lg:pt-20">
+            <div className="col-span-12 lg:col-span-6">
+              <h1 id="intro-heading" className="type-hero text-balance">
+                {lead}
+                <span className="text-brand">{accent}</span>
+              </h1>
+              <p className="mt-10 max-w-[30rem] text-[1.25rem] leading-[1.5] tracking-[-0.01em] text-ink sm:text-[1.375rem]">{profile.introduction}</p>
+              <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+                <a
+                  href="#work"
+                  className="group inline-flex min-h-12 items-center gap-3 bg-brand px-6 py-3 text-[0.9375rem] font-semibold text-paper transition-colors hover:bg-brand-hover"
+                >
+                  Explore selected work
+                  <ArrowIcon direction="down" className="transition-transform duration-300 group-hover:translate-y-0.5" />
+                </a>
+                <ArrowLink href="/contact">Get in touch</ArrowLink>
+              </div>
+            </div>
+            <div className="col-span-12 lg:col-span-6 lg:col-start-7 lg:pt-3">
+              <StackFigure />
             </div>
           </div>
-          <HeroVisual profile={profile} handle={handle} />
         </Container>
       </section>
 
-      <section aria-labelledby="expertise-heading">
-        <Container>
-          <h2 id="expertise-heading" className="sr-only">
-            Technical expertise
-          </h2>
-          <ExpertiseCards items={profile.expertise} />
-        </Container>
-      </section>
-
-      <section aria-labelledby="work-heading" className="mt-20 sm:mt-28">
-        <Container>
-          <SectionHeading id="work-heading" title="Featured Projects" eyebrow="Selected work">
-            {featured.length > 0 ? <ArrowLink href="/projects">View all projects</ArrowLink> : null}
-          </SectionHeading>
-          {featured.length > 0 ? (
-            <div className="mt-8">
-              <ProjectGrid projects={featured} />
-            </div>
-          ) : (
-            <div className="mt-8 rounded-2xl border border-dashed border-field/50 bg-white/60 px-6 py-10 text-center">
-              <p className="mx-auto max-w-md text-ink-muted">
-                Case studies are being written up and will be published here once they’re complete.
-              </p>
-              <ArrowLink href="/contact" className="mt-4">
-                Ask about my work
-              </ArrowLink>
-            </div>
-          )}
-        </Container>
-      </section>
-
-      {profile.skillGroups.length > 0 ? (
-        <section aria-labelledby="skills-heading" className="mt-20 sm:mt-28">
-          <Container>
-            <SectionHeading id="skills-heading" title="Technical Skills" eyebrow="Toolbox">
-              {isPreview ? <span className="text-owner">Preview: “?” marks unconfirmed skills, hidden in production.</span> : null}
-            </SectionHeading>
-            <div className="mt-8">
-              <SkillsPanel groups={profile.skillGroups} />
-            </div>
+      {projects.length > 0 ? (
+        <section id="work" aria-labelledby="work-heading" className="pb-24 sm:pb-36">
+          <Container className="mb-16 sm:mb-24">
+            <SectionHead
+              id="work-heading"
+              index={number("work")}
+              label="Selected work"
+              title="Systems across the cloud, the operating system, and the product."
+              aside={
+                <p className="type-lead measure">
+                  Each project is shown with what is confirmed today. Full case studies, with the problem, the decisions, and
+                  verified results, follow as they are written.
+                </p>
+              }
+            />
           </Container>
+          <ProjectShowcase projects={projects} />
         </section>
       ) : null}
 
-      {certifications.length > 0 ? (
-        <section aria-labelledby="certifications-heading" className="mt-20 sm:mt-24">
-          <Container>
-            <SectionHeading id="certifications-heading" title="Certifications" eyebrow="Credentials" />
-            <div className="mt-8">
-              <CertificationCards items={certifications} />
-            </div>
-          </Container>
-        </section>
-      ) : null}
+      <section id="capabilities" aria-labelledby="capabilities-heading" className="pb-24 sm:pb-36">
+        <Container>
+          <SectionHead
+            id="capabilities-heading"
+            index={number("capabilities")}
+            label="Capabilities"
+            title="What I work on, and where it shows."
+            aside={
+              isPreview ? <p className="text-[0.9375rem] text-owner">Preview: “?” marks unconfirmed tools, hidden in production.</p> : null
+            }
+          />
+          <div className="mt-14 sm:mt-20">
+            <CapabilitiesIndex capabilities={profile.capabilities} projects={projects} />
+          </div>
+          <Credentials items={certifications} className="mt-12" />
+        </Container>
+      </section>
 
       {experience.length > 0 ? (
-        <section aria-labelledby="experience-heading" className="mt-20 sm:mt-28">
+        <section id="experience" aria-labelledby="experience-heading" className="pb-24 sm:pb-36">
           <Container>
-            <SectionHeading id="experience-heading" title="Experience" eyebrow="Career">
-              <ArrowLink href="/experience">Full timeline</ArrowLink>
-            </SectionHeading>
-            <div className="mt-8 max-w-4xl">
-              <ExperienceTimeline items={experience.slice(0, 2)} />
+            <SectionHead id="experience-heading" index={number("experience")} label="Experience" title="Where I’ve done the work." />
+            <div className="mt-14 sm:mt-20">
+              <ExperienceTimeline items={experience} />
             </div>
           </Container>
         </section>
       ) : null}
 
       {posts.length > 0 ? (
-        <section aria-labelledby="articles-heading" className="mt-20 sm:mt-28">
+        <section id="writing" aria-labelledby="writing-heading" className="pb-24 sm:pb-36">
           <Container>
-            <SectionHeading id="articles-heading" title="Latest Articles" eyebrow="Blog">
-              <ArrowLink href="/blog">View all articles</ArrowLink>
-            </SectionHeading>
-            <div className="mt-8">
-              <ArticleGrid posts={posts} />
+            <SectionHead
+              id="writing-heading"
+              index={number("writing")}
+              label="Writing"
+              title="Notes from the work."
+              aside={<ArrowLink href="/blog">All writing</ArrowLink>}
+            />
+            <div className="mt-14 sm:mt-20">
+              <ArticleList posts={posts} />
             </div>
           </Container>
         </section>
       ) : null}
 
-      <section aria-labelledby="contact-heading" className="mt-20 sm:mt-28">
-        <Container>
-          <div className="reveal relative overflow-hidden rounded-3xl bg-term px-6 py-12 text-term-text sm:px-12 sm:py-14">
-            <div aria-hidden="true" className="bg-grid absolute inset-0" />
-            <div
-              aria-hidden="true"
-              className="absolute -right-24 -bottom-40 size-[28rem] rounded-full bg-[radial-gradient(closest-side,rgb(127_207_169/0.18),transparent)]"
-            />
-            <div className="relative flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-              <div className="max-w-xl">
-                <p className="text-xs font-bold uppercase tracking-[0.08em] text-term-prompt">Get in touch</p>
-                <h2 id="contact-heading" className="mt-3 text-[1.75rem] font-extrabold leading-tight tracking-[-0.025em] text-white sm:text-[2.125rem]">
-                  Questions about a project, or infrastructure to build?
-                </h2>
-                <p className="mt-3 text-term-dim">Send a message and I’ll reply by email.</p>
-              </div>
-              <ButtonLink href="/contact" variant="secondary" className="shrink-0 border-transparent">
-                Contact Me
-                <ArrowIcon />
-              </ButtonLink>
-            </div>
+      <section id="contact" aria-labelledby="contact-heading" className="bg-brand text-paper">
+        <Container className="grid-editorial gap-y-10 py-20 sm:py-28">
+          <p className="type-label col-span-12 !text-brand-tint lg:col-span-3">
+            <span className="text-term-prompt">{String(sections.length + 1).padStart(2, "0")}</span> — Contact
+          </p>
+          <h2 id="contact-heading" className="type-display col-span-12 text-balance lg:col-span-7">
+            Have a system that needs to work?
+          </h2>
+          <div className="col-span-12 lg:col-span-9 lg:col-start-4">
+            <Link
+              href="/contact"
+              className="group inline-flex items-center gap-3 border-b border-paper/40 pb-1 text-[1.25rem] font-semibold transition-colors hover:border-paper"
+            >
+              Start a conversation
+              <ArrowIcon className="size-5 transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+            <p className="type-mono mt-4 text-[0.8125rem] text-brand-tint">Send a message and I’ll reply by email.</p>
           </div>
         </Container>
       </section>
     </>
   );
+}
+
+/** Splits the headline before its last two words, which are set in the brand colour and kept together. */
+function splitAccent(headline: string): [string, string] {
+  const match = /^(.*\s)(\S+)\s+(\S+)$/.exec(headline);
+  return match ? [match[1], `${match[2]} ${match[3]}`] : [headline, ""];
 }

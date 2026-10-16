@@ -12,13 +12,15 @@ import { needs } from "@/lib/content/owner-input";
 const project: ProjectInput = {
   slug: "glomaf",
   title: "Glomaf Marketplace",
-  summary: needs("What is Glomaf, and who is it for? One or two sentences. Known so far: a marketplace with a Next.js web app and a React Native (Expo) mobile app on Supabase, with authentication and messaging."),
+  summary: "A marketplace with a Next.js web app and a React Native (Expo) mobile app, built on Supabase, including authentication and messaging.",
   problemSummary: needs("One or two sentences: the problem Glomaf solves and for whom."),
   contributionSummary: needs("One or two sentences: your role in building Glomaf."),
   category: "Software Projects",
   technologies: ["Next.js", "React Native", "Expo", "Supabase"],
+  scope: ["Web app", "Mobile app", "Authentication", "Messaging", "Performance"],
+  figure: "glomaf-platform",
   status: "unconfirmed",
-  publication: "draft",
+  publication: "listed",
   featured: true,
   ownerChecklist: [
     "Confirm the category (currently a placeholder: Software Projects).",

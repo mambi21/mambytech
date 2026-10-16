@@ -28,13 +28,13 @@ Replace each marker with your own words. Never leave a guess in place of a fact.
 | Field | What it controls |
 | --- | --- |
 | `name`, `brand`, `tagline` | Header, hero, footer, metadata |
-| `role` | The title under your name in the hero, e.g. "Cloud Infrastructure & Linux Engineer" |
-| `focusAreas` | The "Cloud Infrastructure · Linux · …" line above the hero heading |
-| `introduction` | The paragraph under the hero heading |
-| `expertise` | The four cards under the hero: `title`, `description`, `icon` (`linux`, `cloud`, `automation` or `reliability`) and `items` |
+| `role` | Your title, e.g. "Cloud Infrastructure & Linux Engineer" (hero strip, About page, footer) |
+| `headline` | The home page's opening statement. Its last two words are set in forest green |
+| `focusAreas` | The focus list on the About fact sheet |
+| `introduction` | The paragraph under the headline |
 | `links.github`, `links.linkedin` | Optional. Hidden until set |
-| `portrait` | Optional photo. Replaces the infrastructure illustration in the hero and the profile card on the About page |
-| `skillGroups` | Skills on the home and About pages. Items with `confirmed: false` are hidden in production, and a group with no confirmed items is hidden entirely |
+| `portrait` | Optional photo on the About page. Hidden until set |
+| `capabilities` | The capabilities index on the home and About pages: `area`, `summary` (what you do there), `tools` and `evidence` (project slugs that show it). Tools with `confirmed: false` are hidden in production, and an area with no confirmed tools is hidden entirely |
 
 Adding a link:
 
@@ -49,13 +49,21 @@ Links must use `https://`. To add another kind of link (for example Mastodon), a
 
 ## About page: `content/about.ts`
 
-The `introduction` section opens the page under "Hi, I'm Ibrahima." The other sections follow in order, each with a `heading`, `paragraphs`, and an optional bulleted `list`. Remove a section's `needs(…)` marker to publish it, or delete the section entirely.
+The `introduction` section opens the page under your name. The other sections follow in order, each with a `heading`, `paragraphs`, and an optional bulleted `list`. Remove a section's `needs(…)` marker to publish it, or delete the section entirely.
 
 ## Projects: `content/projects/`
 
 There is one file per project, and `content/projects/index.ts` sets the display order.
 
-**To publish a draft:**
+Each project has one of three `publication` states:
+
+| State | In production |
+| --- | --- |
+| `draft` | Not shown anywhere. |
+| `listed` | Shown in the work showcase with only its title, summary, scope and technologies, marked "case study in preparation". It has no case-study page. Those four fields can't contain `needs(…)` markers (the build checks). |
+| `published` | Shown everywhere, with a full case-study page. |
+
+**To publish a case study:**
 
 1. Replace every `needs(…)` with real content.
 2. Resolve and delete each `ownerChecklist` item.
@@ -68,10 +76,11 @@ There is one file per project, and `content/projects/index.ts` sets the display 
 **Fields:**
 
 - `problemSummary` and `contributionSummary`: one or two sentences each (at most 220 characters). Project lists show them as "Problem" and "My contribution", so state the problem and what *you* did plainly.
-- `cover`: an optional image for project cards and the case-study header. If it's missing, the architecture diagram is used, then the first `media` image, then a category illustration.
-- `caseStudy.architecture.drawing`: a labelled diagram drawn in code, used when there's no `diagram` image. Currently `"aws-three-tier"`. Only use it if it matches the real design.
+- `cover`: an optional image for the showcase and the case-study header. If it's missing, the architecture diagram is used, then the first `media` image, then the project's `figure`.
+- `figure`: a labelled technical figure drawn in code (`components/figures.tsx`): `"aws-three-tier"`, `"linux-operations"` or `"glomaf-platform"`. `"glomaf-platform"` is drawn on the dark ground, so that project gets the dark band in the showcase. Only use a figure if it matches the real system.
+- `scope`: the areas of work the project covered, listed in the showcase.
 - `category`: one of `Cloud Infrastructure`, `Linux`, `DevOps`, `Software Projects`.
-- `featured: true` shows the project on the home page.
+- `featured: true` shows the project in the home page showcase. Layouts alternate automatically: a full-width figure, then an asymmetric split, with dark-figure projects on a full-bleed dark band.
 - `timeframe` is optional free text, such as `"Spring 2026"`.
 - `caseStudy` holds `problem`, `role`, `architecture.summary`, `implementation` (steps), `tradeoffs` (decision and rationale), `verification`, `outcomes`, `lessons`.
 - `links`: `{ label, href, kind }`, where `kind` is `repository`, `live`, `documentation` or `other`. Only add links that are public.
@@ -95,7 +104,7 @@ Each certification has a `name`, a short `abbreviation` (shown on the badge) and
 
 ## Blog: `content/writing/index.ts`
 
-Posts appear on `/blog`, and the latest three appear on the home page. Each post has a `slug`, `title`, `summary`, `category` (a short label such as "Linux" or "AWS"), an optional `cover` image, and a `body` made of `heading`, `paragraph`, `list` and `code` blocks. Reading time is calculated from the body.
+Posts appear on `/blog` (labelled "Writing"), and the latest four appear on the home page. Each post has a `slug`, `title`, `summary`, `category` (a short label such as "Linux" or "AWS"), an optional `cover` image, and a `body` made of `heading`, `paragraph`, `list` and `code` blocks. Reading time is calculated from the body.
 
 The file holds five draft topic ideas. Drafts appear only in preview mode. To publish a post, write its body, set `publication: "published"` and set `publishedOn` to the real date (`"YYYY-MM-DD"`). The Blog page and its navigation link stay hidden until at least one post is published.
 

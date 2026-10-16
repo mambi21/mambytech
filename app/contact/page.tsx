@@ -23,9 +23,9 @@ export default function ContactPage() {
         <p>Send a message about a project, a question, or an opportunity. I’ll reply by email.</p>
       </PageHeader>
 
-      <Container className="pt-12">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10">
-          <section aria-label="Contact form" className="rounded-2xl border border-rule bg-white p-6 shadow-[var(--shadow-card)] sm:p-10">
+      <Container className="pb-24">
+        <div className="grid-editorial gap-y-14 border-t border-ink pt-10">
+          <section aria-label="Contact form" className="col-span-12 lg:col-span-7 lg:col-start-4">
             {available ? (
               <ContactForm />
             ) : (
@@ -42,9 +42,9 @@ export default function ContactPage() {
             )}
           </section>
 
-          <aside aria-label="About your message" className="space-y-8 self-start rounded-2xl border border-rule bg-paper-2/60 p-6 text-[0.9375rem] sm:p-8">
+          <aside aria-label="About your message" className="col-span-12 space-y-8 text-[0.9375rem] lg:col-span-3 lg:row-start-1">
             <div>
-              <h2 className="font-semibold">What happens next</h2>
+              <h2 className="type-label">What happens next</h2>
               <p className="mt-2 text-ink-muted">
                 Your message goes by email to {profile.name}. Your name and email are used only to reply, and nothing is
                 added to a mailing list.
@@ -59,7 +59,7 @@ export default function ContactPage() {
             </div>
             {social.length > 0 ? (
               <div>
-                <h2 className="font-semibold">Elsewhere</h2>
+                <h2 className="type-label">Elsewhere</h2>
                 <ul className="mt-2 space-y-1.5">
                   {social.map((link) => (
                     <li key={link.href}>

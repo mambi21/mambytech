@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { ProjectGrid } from "@/components/projects";
+import { ProjectShowcase } from "@/components/projects";
 import { ArrowLink, Container, PageHeader } from "@/components/ui";
-import { getProjects } from "@/lib/content";
+import { getShowcaseProjects } from "@/lib/content";
 import { projectStatuses } from "@/lib/content/schema";
 import { pageMetadata } from "@/lib/metadata";
 import { isPreview } from "@/lib/preview";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Projects",
+  title: "Work",
   description:
-    "Cloud infrastructure, Linux, DevOps and software projects by Ibrahima Mamby Bah, each with an honest status and a detailed case study.",
+    "Selected work by Ibrahima Mamby Bah: AWS infrastructure, Linux operations and automation, and product engineering, documented as case studies.",
   path: "/projects",
 });
 
@@ -22,46 +22,45 @@ const statusHelp: Record<Exclude<keyof typeof projectStatuses, "unconfirmed">, s
 };
 
 export default function ProjectsPage() {
-  const projects = getProjects();
+  const projects = getShowcaseProjects();
 
   return (
     <>
-      <PageHeader label="Projects" title="Projects and case studies">
+      <PageHeader label="Work" title="Selected work">
         <p>
-          Each case study covers the problem, my role, the architecture, the tradeoffs, and how the result was verified.
-          Status labels show where each project actually stands.
+          Projects across cloud networking, Linux operations, and product engineering. Each is shown with what is confirmed
+          today; full case studies cover the problem, the decisions, and how the result was verified.
         </p>
       </PageHeader>
 
-      <Container className="pt-12">
-        {isPreview ? (
-          <p className="mb-10 rounded-xl border border-dashed border-owner-line bg-owner-bg px-4 py-3 text-[0.9375rem] text-owner">
-            Preview: draft projects are listed below. They stay out of production until their <code className="font-mono">publication</code> is
-            set to <code className="font-mono">&quot;published&quot;</code>.
+      {isPreview ? (
+        <Container className="mb-12">
+          <p className="border border-dashed border-owner-line bg-owner-bg px-4 py-3 text-[0.9375rem] text-owner">
+            Preview: draft projects are shown below. Listed projects appear in production with their confirmed facts only;
+            drafts don’t appear at all.
           </p>
-        ) : null}
+        </Container>
+      ) : null}
 
-        {projects.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-field/50 bg-white/60 px-6 py-10 text-center">
-            <p className="mx-auto max-w-md text-ink-muted">
-              Case studies are being written up and will be published here once they’re complete.
-            </p>
-            <ArrowLink href="/contact" className="mt-4">
-              Get in touch
-            </ArrowLink>
-          </div>
-        ) : (
-          <>
-            <h2 className="sr-only">All projects</h2>
-            <ProjectGrid projects={projects} />
-          </>
-        )}
+      {projects.length > 0 ? (
+        <section aria-label="Projects">
+          <ProjectShowcase projects={projects} level="h2" />
+        </section>
+      ) : (
+        <Container>
+          <p className="measure border-t border-ink pt-6 text-ink-muted">Case studies are being written up and will appear here.</p>
+          <ArrowLink href="/contact" className="mt-5">
+            Get in touch
+          </ArrowLink>
+        </Container>
+      )}
 
-        <section aria-labelledby="status-heading" className="mt-20 rounded-2xl border border-rule bg-paper-2/60 p-6 sm:p-8">
-          <h2 id="status-heading" className="type-label">
-            About the status labels
+      <Container className="mt-24 sm:mt-32">
+        <section aria-labelledby="status-heading" className="grid-editorial gap-y-6 border-t border-ink pt-5">
+          <h2 id="status-heading" className="type-label col-span-12 md:col-span-3">
+            Status labels
           </h2>
-          <dl className="mt-4 grid gap-x-10 gap-y-3 text-[0.9375rem] sm:grid-cols-2 lg:grid-cols-3">
+          <dl className="col-span-12 grid gap-x-8 gap-y-4 text-[0.9375rem] sm:grid-cols-2 md:col-span-9 lg:grid-cols-3">
             {Object.entries(statusHelp).map(([key, help]) => (
               <div key={key}>
                 <dt className="font-semibold">{projectStatuses[key as keyof typeof statusHelp]}</dt>

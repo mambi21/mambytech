@@ -32,10 +32,10 @@ export default async function PostPage({ params }: PageProps<"/blog/[slug]">) {
       <Container className="pt-10 sm:pt-14">
         <div className="mx-auto max-w-3xl">
           <nav aria-label="Breadcrumb">
-            <ol className="flex flex-wrap items-center gap-2 text-sm text-ink-subtle">
+            <ol className="type-label flex flex-wrap items-center gap-2">
               <li>
-                <Link href="/blog" className="hover:text-ink hover:underline hover:underline-offset-4">
-                  Blog
+                <Link href="/blog" className="link-draw hover:text-ink">
+                  Writing
                 </Link>
               </li>
               <li aria-hidden="true">/</li>
@@ -46,7 +46,7 @@ export default async function PostPage({ params }: PageProps<"/blog/[slug]">) {
           </nav>
           <header className="mt-8">
             <p className="flex flex-wrap items-center gap-2">
-              <span className="rounded-md bg-brand-tint px-2 py-0.5 text-xs font-semibold text-brand">{post.category}</span>
+              <span className="type-label text-brand">{post.category}</span>
               {post.publication === "draft" ? <DraftBadge /> : null}
             </p>
             <h1 className="type-display mt-4 text-balance">{post.title}</h1>
@@ -65,7 +65,7 @@ export default async function PostPage({ params }: PageProps<"/blog/[slug]">) {
               height={post.cover.height}
               sizes="(min-width: 768px) 768px, 100vw"
               preload
-              className="mt-10 h-auto w-full rounded-2xl border border-rule"
+              className="mt-10 h-auto w-full border border-rule"
             />
           ) : null}
 
@@ -96,7 +96,7 @@ export default async function PostPage({ params }: PageProps<"/blog/[slug]">) {
                   );
                 case "code":
                   return (
-                    <pre key={index} className="overflow-x-auto rounded-xl bg-term p-5 font-mono text-[0.8125rem] leading-relaxed text-term-text" tabIndex={0}>
+                    <pre key={index} className="overflow-x-auto bg-term p-5 font-mono text-[0.8125rem] leading-relaxed text-term-text" tabIndex={0}>
                       <code>{block.code}</code>
                     </pre>
                   );
@@ -104,8 +104,8 @@ export default async function PostPage({ params }: PageProps<"/blog/[slug]">) {
             })}
           </div>
 
-          <div className="mt-14 flex flex-wrap gap-x-8 gap-y-3 border-t border-rule pt-6">
-            <ArrowLink href="/blog">All articles</ArrowLink>
+          <div className="mt-14 mb-24 flex flex-wrap gap-x-10 gap-y-3 border-t border-ink pt-6">
+            <ArrowLink href="/blog">All writing</ArrowLink>
             <ArrowLink href="/contact">Get in touch</ArrowLink>
           </div>
         </div>

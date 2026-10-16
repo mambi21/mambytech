@@ -1,19 +1,18 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { CertificationCards } from "@/components/certifications";
+import type { ReactNode } from "react";
+import { CapabilitiesIndex, Credentials } from "@/components/capabilities";
 import { ExperienceTimeline } from "@/components/experience";
 import { OwnerPlaceholder, OwnerText } from "@/components/owner-text";
-import { SkillsPanel } from "@/components/skills";
-import { ArrowLink, ButtonLink, Container, Eyebrow, SectionHeading } from "@/components/ui";
-import { getAbout, getCertifications, getExperience, getProfile } from "@/lib/content";
+import { ArrowLink, Container, SectionHead } from "@/components/ui";
+import { getAbout, getCertifications, getExperience, getProfile, getShowcaseProjects } from "@/lib/content";
 import { pageMetadata } from "@/lib/metadata";
 import { isPreview } from "@/lib/preview";
-import mark from "@/public/brand/mambytech-mark-trimmed.png";
 
 export const metadata: Metadata = pageMetadata({
   title: "About",
   description:
-    "About Ibrahima Mamby Bah, Cloud Infrastructure & Linux Engineer: background, technical skills, certifications, and engineering approach.",
+    "About Ibrahima Mamby Bah, Cloud Infrastructure & Linux Engineer: background, capabilities, credentials, and engineering approach.",
   path: "/about",
 });
 
@@ -22,136 +21,116 @@ export default function AboutPage() {
   const { sections } = getAbout();
   const experience = getExperience();
   const certifications = getCertifications();
+  const projects = getShowcaseProjects();
   const intro = sections.find((section) => section.id === "introduction");
   const rest = sections.filter((section) => section !== intro);
-  const firstName = profile.name.split(" ")[0];
 
   return (
     <>
-      <div className="relative overflow-hidden border-b border-rule">
-        <div aria-hidden="true" className="bg-grid-light absolute inset-0 [mask-image:linear-gradient(to_bottom,black,transparent)]" />
-        <Container className="relative grid items-center gap-12 pt-14 pb-16 sm:pt-20 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)] lg:gap-16">
-          <div>
-            <Eyebrow>About</Eyebrow>
-            <h1 className="type-display mt-3">
-              Hi, I’m <span className="text-brand">{firstName}</span>.
-            </h1>
-            <p className="mt-4 text-xl font-semibold tracking-[-0.01em]">{profile.role}</p>
+      <Container className="pt-14 pb-20 sm:pt-20 sm:pb-28">
+        <div className="grid-editorial gap-y-12">
+          <p className="type-label col-span-12 md:col-span-3 md:pt-4">About</p>
+          <div className="col-span-12 md:col-span-9 lg:col-span-6">
+            <h1 className="type-display text-balance">{profile.name}</h1>
+            <p className="mt-4 text-[1.375rem] font-semibold tracking-[-0.015em] text-brand">{profile.role}</p>
             {intro ? (
-              <div className="measure mt-6 space-y-4 text-[1.125rem] leading-relaxed text-ink-muted">
-                {intro.paragraphs.map((paragraph, index) => (
-                  <p key={index}>
+              <div className="mt-8 space-y-5 text-[1.1875rem] leading-relaxed text-ink-muted">
+                {intro.paragraphs.map((paragraph, i) => (
+                  <p key={i} className={i === 0 ? "text-ink" : undefined}>
                     <OwnerText value={paragraph} />
                   </p>
                 ))}
               </div>
             ) : null}
-            <div className="mt-8 flex flex-wrap gap-3">
-              <ButtonLink href="/projects">See my projects</ButtonLink>
-              <ButtonLink href="/contact" variant="secondary">
-                Get in touch
-              </ButtonLink>
-            </div>
           </div>
-
-          <div className="mx-auto w-full max-w-sm lg:mr-0">
+          <aside aria-label="Fact sheet" className="col-span-12 md:col-span-9 md:col-start-4 lg:col-span-3 lg:col-start-10">
             {profile.portrait ? (
               <Image
                 src={profile.portrait.src}
                 alt={profile.portrait.alt}
                 width={profile.portrait.width}
                 height={profile.portrait.height}
-                sizes="384px"
+                sizes="(min-width: 1024px) 320px, 100vw"
                 preload
-                className="aspect-[4/5] w-full rounded-3xl object-cover shadow-[var(--shadow-lift)]"
+                className="mb-8 aspect-[4/5] w-full object-cover"
               />
-            ) : (
-              <ProfileCard focus={profile.focusAreas} tagline={profile.tagline} />
-            )}
-            {!profile.portrait && isPreview ? (
-              <OwnerPlaceholder className="mt-4">
-                Optional portrait: add a photo to /public and set <code>portrait</code> in content/profile.ts. It replaces this card.
-              </OwnerPlaceholder>
+            ) : isPreview ? (
+              <OwnerPlaceholder className="mb-8">Optional portrait: add a photo to /public and set <code>portrait</code> in content/profile.ts.</OwnerPlaceholder>
             ) : null}
-          </div>
-        </Container>
-      </div>
+            <dl className="border-t border-ink text-[0.9375rem]">
+              <Fact term="Role">{profile.role}</Fact>
+              <Fact term="Focus">{profile.focusAreas.join(", ")}</Fact>
+              {certifications.length > 0 ? <Fact term="Certified">{certifications.map((c) => c.abbreviation).join(", ")}</Fact> : null}
+              <Fact term="Site">{profile.brand}</Fact>
+            </dl>
+          </aside>
+        </div>
+      </Container>
 
       {rest.length > 0 ? (
-        <Container className="mt-16 sm:mt-20">
-          <div className="grid gap-5 md:grid-cols-2">
-            {rest.map((section) => (
-              <section
-                key={section.id}
-                aria-labelledby={`${section.id}-heading`}
-                className="reveal rounded-2xl border border-rule bg-white p-6 shadow-[var(--shadow-card)] sm:p-8"
-              >
-                <h2 id={`${section.id}-heading`} className="type-heading">
+        <Container className="pb-24 sm:pb-32">
+          <div className="border-t border-ink">
+            {rest.map((section, position) => (
+              <section key={section.id} aria-labelledby={`${section.id}-heading`} className="reveal grid-editorial gap-y-4 border-b border-rule py-10">
+                <p aria-hidden="true" className="type-label col-span-12 text-brand md:col-span-1">
+                  {String(position + 1).padStart(2, "0")}
+                </p>
+                <h2 id={`${section.id}-heading`} className="type-heading col-span-12 md:col-span-3">
                   {section.heading}
                 </h2>
-                <div className="mt-3 space-y-4 text-ink-muted">
-                  {section.paragraphs.map((paragraph, index) => (
-                    <p key={index}>
-                      <OwnerText value={paragraph} />
-                    </p>
-                  ))}
-                </div>
-                {section.list.length > 0 ? (
-                  <ul className="mt-5 space-y-2.5">
-                    {section.list.map((item, index) => (
-                      <li key={index} className="grid grid-cols-[1.25rem_1fr] text-ink">
-                        <span aria-hidden="true" className="text-brand">
-                          –
-                        </span>
-                        <span>
-                          <OwnerText value={item} />
-                        </span>
-                      </li>
+                <div className="col-span-12 md:col-span-8 lg:col-span-6">
+                  <div className="space-y-4 text-ink-muted">
+                    {section.paragraphs.map((paragraph, i) => (
+                      <p key={i}>
+                        <OwnerText value={paragraph} />
+                      </p>
                     ))}
-                  </ul>
-                ) : null}
+                  </div>
+                  {section.list.length > 0 ? (
+                    <ul className="mt-5 space-y-2.5">
+                      {section.list.map((item, i) => (
+                        <li key={i} className="grid grid-cols-[1.5rem_1fr]">
+                          <span aria-hidden="true" className="type-mono text-brand">
+                            →
+                          </span>
+                          <span>
+                            <OwnerText value={item} />
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
               </section>
             ))}
           </div>
         </Container>
       ) : null}
 
+      <section aria-labelledby="capabilities-heading" className="pb-24 sm:pb-32">
+        <Container>
+          <SectionHead id="capabilities-heading" label="Capabilities" title="What I work on, and where it shows." />
+          <div className="mt-14 sm:mt-20">
+            <CapabilitiesIndex capabilities={profile.capabilities} projects={projects} />
+          </div>
+          <Credentials items={certifications} className="mt-12" />
+        </Container>
+      </section>
+
       {experience.length > 0 ? (
-        <section aria-labelledby="experience-heading" className="mt-20 sm:mt-24">
+        <section aria-labelledby="experience-heading" className="pb-24 sm:pb-32">
           <Container>
-            <SectionHeading id="experience-heading" title="Experience" eyebrow="Career" />
-            <div className="mt-8 max-w-4xl">
+            <SectionHead id="experience-heading" label="Experience" title="Where I’ve done the work." />
+            <div className="mt-14 sm:mt-20">
               <ExperienceTimeline items={experience} />
             </div>
           </Container>
         </section>
       ) : null}
 
-      {certifications.length > 0 ? (
-        <section aria-labelledby="certifications-heading" className="mt-20 sm:mt-24">
-          <Container>
-            <SectionHeading id="certifications-heading" title="Certifications" eyebrow="Credentials" />
-            <div className="mt-8">
-              <CertificationCards items={certifications} />
-            </div>
-          </Container>
-        </section>
-      ) : null}
-
-      {profile.skillGroups.length > 0 ? (
-        <section aria-labelledby="skills-heading" className="mt-20 sm:mt-24">
-          <Container>
-            <SectionHeading id="skills-heading" title="Technical Skills" eyebrow="Toolbox" />
-            <div className="mt-8">
-              <SkillsPanel groups={profile.skillGroups} />
-            </div>
-          </Container>
-        </section>
-      ) : null}
-
-      <Container className="mt-16">
-        <div className="flex flex-wrap gap-x-8 gap-y-3 border-t border-rule pt-6">
-          <ArrowLink href="/projects">See the projects</ArrowLink>
+      <Container className="pb-24">
+        <div className="flex flex-wrap gap-x-10 gap-y-3 border-t border-ink pt-6">
+          <ArrowLink href="/projects">See the work</ArrowLink>
           <ArrowLink href="/contact">Get in touch</ArrowLink>
         </div>
       </Container>
@@ -159,28 +138,11 @@ export default function AboutPage() {
   );
 }
 
-/** Stand-in for a portrait: the MambyTech mark and focus areas on a dark panel. */
-function ProfileCard({ focus, tagline }: { focus: string[]; tagline: string }) {
+function Fact({ term, children }: { term: string; children: ReactNode }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl bg-term p-8 text-term-text shadow-[var(--shadow-lift)]">
-      <div aria-hidden="true" className="bg-grid absolute inset-0" />
-      <div
-        aria-hidden="true"
-        className="absolute -top-20 -right-20 size-72 rounded-full bg-[radial-gradient(closest-side,rgb(127_207_169/0.2),transparent)]"
-      />
-      <div className="relative">
-        <Image src={mark} alt="" sizes="128px" className="h-16 w-auto rounded-xl" />
-        <p className="mt-8 text-xs font-bold uppercase tracking-[0.08em] text-term-prompt">Focus areas</p>
-        <ul className="mt-3 space-y-2.5">
-          {focus.map((area) => (
-            <li key={area} className="flex items-center gap-3 font-medium text-white">
-              <span aria-hidden="true" className="size-1.5 rounded-full bg-term-prompt" />
-              {area}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-8 border-t border-term-line pt-5 font-mono text-sm text-term-dim">{tagline}</p>
-      </div>
+    <div className="grid grid-cols-[6rem_1fr] gap-4 border-b border-rule py-3">
+      <dt className="type-label pt-0.5">{term}</dt>
+      <dd>{children}</dd>
     </div>
   );
 }

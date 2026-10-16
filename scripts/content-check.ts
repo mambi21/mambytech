@@ -12,8 +12,11 @@ const { projects, profile, about, writing, experience, certifications } = rawCon
 console.log("Content is valid.\n");
 
 const published = projects.filter((p) => p.publication === "published");
+const listed = projects.filter((p) => p.publication === "listed");
 const drafts = projects.filter((p) => p.publication === "draft");
-console.log(`Projects: ${published.length} published, ${drafts.length} draft (drafts are hidden in production).`);
+console.log(
+  `Projects: ${published.length} published, ${listed.length} listed (shown without a case study), ${drafts.length} draft (hidden in production).`,
+);
 console.log(
   `Blog: ${writing.filter((w) => w.publication === "published").length} published, ${writing.filter((w) => w.publication === "draft").length} draft.`,
 );
@@ -27,8 +30,11 @@ const report = (label: string, items: string[]) => {
   for (const item of items) console.log(`    - ${item}`);
 };
 
-for (const project of drafts) {
-  report(`Draft project "${project.slug}" — needs owner input`, [...listOwnerInput(project), ...project.ownerChecklist]);
+for (const project of [...listed, ...drafts]) {
+  report(`${project.publication === "listed" ? "Listed" : "Draft"} project "${project.slug}" — case study needs owner input`, [
+    ...listOwnerInput(project),
+    ...project.ownerChecklist,
+  ]);
 }
 for (const item of experience) {
   report(`Experience › ${item.organization} (hidden in production until resolved)`, listOwnerInput(item));
@@ -43,8 +49,8 @@ for (const section of about.sections) {
   report(`About › ${section.heading} (hidden in production until resolved)`, listOwnerInput(section));
 }
 report(
-  "Unconfirmed skills (hidden in production)",
-  profile.skillGroups.flatMap((g) => g.items.filter((i) => !i.confirmed).map((i) => `${g.area}: ${i.name}`)),
+  "Unconfirmed tools in the capabilities index (hidden in production)",
+  profile.capabilities.flatMap((area) => area.tools.filter((tool) => !tool.confirmed).map((tool) => `${area.area}: ${tool.name}`)),
 );
 report(
   "Optional profile links",

@@ -45,8 +45,16 @@ export const projectStatuses = {
 
 export const projectLinkKinds = ["repository", "live", "documentation", "other"] as const;
 
-/** Labelled architecture diagrams available as code (see components/architecture-diagram.tsx). */
-export const architectureDrawings = ["aws-three-tier"] as const;
+/** Technical figures drawn in code (see components/figures.tsx). Use one only if it matches the real system. */
+export const projectFigures = ["aws-three-tier", "linux-operations", "glomaf-platform"] as const;
+
+/**
+ * - draft: never shown in production.
+ * - listed: shown in the work showcase with confirmed facts only (title, summary,
+ *   scope, technologies); no case-study page until it is published.
+ * - published: shown everywhere, with a full case-study page.
+ */
+export const publicationStates = ["draft", "listed", "published"] as const;
 
 export const projectSchema = z
   .object({
@@ -60,22 +68,21 @@ export const projectSchema = z
     category: z.enum(projectCategories),
     technologies: z.array(text).min(1),
     status: z.enum(Object.keys(projectStatuses) as [keyof typeof projectStatuses]),
-    /** "draft" is never published in production. Change to "published" once approved. */
-    publication: z.enum(["draft", "published"]),
+    /** See `publicationStates`. Drafts are never shown in production. */
+    publication: z.enum(publicationStates),
     featured: z.boolean().default(false),
     /** Optional free text, e.g. "Spring 2026". Leave out rather than guess. */
     timeframe: z.string().optional(),
     /** Things the owner still has to confirm that can't be marked inline (e.g. category). */
     ownerChecklist: z.array(text).default([]),
+    /** The areas of work the project covered, e.g. "Load balancing". Shown in the showcase. */
+    scope: z.array(text).default([]),
+    /** A technical figure drawn in code, used when there's no cover image or architecture diagram. */
+    figure: z.enum(projectFigures).optional(),
     caseStudy: z.object({
       problem: text,
       role: text,
-      architecture: z.object({
-        summary: text,
-        diagram: mediaSchema.optional(),
-        /** A labelled diagram drawn in code, used when there's no diagram image. Pick the one that matches the real design. */
-        drawing: z.enum(architectureDrawings).optional(),
-      }),
+      architecture: z.object({ summary: text, diagram: mediaSchema.optional() }),
       implementation: z.array(text).min(1),
       tradeoffs: z.array(z.object({ decision: text, rationale: text })).min(1),
       verification: z.array(text).min(1),
@@ -90,6 +97,17 @@ export const projectSchema = z
     cover: mediaSchema.optional(),
   })
   .superRefine((project, ctx) => {
+    if (project.publication === "listed") {
+      const shown = { title: project.title, summary: project.summary, category: project.category, scope: project.scope, technologies: project.technologies };
+      const missing = listOwnerInput(shown);
+      if (missing.length > 0) {
+        ctx.addIssue({
+          code: "custom",
+          message: `Listed projects show their title, summary, scope and technologies publicly, so those can't contain owner-input markers. Still needed: ${missing.join(" | ")}`,
+        });
+      }
+      return;
+    }
     if (project.publication !== "published") return;
     const missing = listOwnerInput(project);
     if (missing.length > 0) {
@@ -168,28 +186,16 @@ export type Writing = z.output<typeof writingSchema>;
 
 const socialLinkSchema = z.object({ label: text, href: httpsUrl });
 
-export const expertiseIcons = ["linux", "cloud", "automation", "reliability"] as const;
-
 export const profileSchema = z.object({
   name: text,
   brand: text,
   tagline: text,
-  /** Professional title shown under the name in the hero. */
+  /** Professional title, e.g. "Cloud Infrastructure & Linux Engineer". */
   role: text,
+  /** The home page's opening statement. */
+  headline: text,
   focusAreas: z.array(text).min(1),
   introduction: text,
-  /** The four expertise cards under the hero. */
-  expertise: z
-    .array(
-      z.object({
-        title: text,
-        description: text,
-        icon: z.enum(expertiseIcons),
-        items: z.array(text).min(1),
-      }),
-    )
-    .min(1)
-    .max(4),
   /** Optional portrait for the About page. Leave undefined until you add a photo to /public. */
   portrait: mediaSchema.optional(),
   /** Optional public links. Leave undefined until confirmed; unset links are hidden. */
@@ -197,12 +203,19 @@ export const profileSchema = z.object({
     github: socialLinkSchema.optional(),
     linkedin: socialLinkSchema.optional(),
   }),
-  skillGroups: z
+  /**
+   * The capabilities index: what you do in each area, the tools, and the
+   * projects that show it. Tools with `confirmed: false` are hidden in
+   * production; an area with no confirmed tools is hidden entirely.
+   */
+  capabilities: z
     .array(
       z.object({
         area: text,
-        description: text,
-        items: z.array(z.object({ name: text, confirmed: z.boolean() })),
+        summary: text,
+        tools: z.array(z.object({ name: text, confirmed: z.boolean() })),
+        /** Slugs of projects that demonstrate this capability. */
+        evidence: z.array(z.string()).default([]),
       }),
     )
     .min(1),

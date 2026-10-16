@@ -1,10 +1,11 @@
 @import "tailwindcss";
 
 /*
- * Design tokens. Contrast against `paper` (page background):
+ * Design tokens. The colour values are the established MambyTech palette and
+ * must not change. Contrast against `paper` (page background):
  *   ink 14.9:1 · ink-muted 7.3:1 · ink-subtle 5.1:1 · brand 11.3:1 · danger 6.0:1
- * `field` borders are ≥3:1 for non-text contrast. The terminal palette is
- * also used for the dark technical visuals (hero diagram, project thumbnails).
+ * `field` borders are ≥3:1 for non-text contrast. The `term` palette is the
+ * dark ground used for one night band per page (e.g. a project feature).
  */
 @theme {
   --color-paper: #f7f4ee; /* warm off-white page */
@@ -30,12 +31,10 @@
   --color-term-prompt: #7fcfa9;
   --color-term-value: #e8c37a;
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains), ui-monospace, "Cascadia Code", Consolas, monospace;
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "Cascadia Code", Consolas, monospace;
 
-  /* Soft, warm elevation for cards. */
-  --shadow-card: 0 1px 2px rgb(28 33 31 / 0.04), 0 8px 24px -12px rgb(28 33 31 / 0.12);
-  --shadow-lift: 0 2px 4px rgb(28 33 31 / 0.05), 0 22px 44px -18px rgb(28 33 31 / 0.28);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @layer base {
@@ -53,7 +52,7 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     font-size: 1.0625rem; /* 17px body */
-    line-height: 1.65;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -65,12 +64,12 @@
   :focus-visible {
     outline: 2px solid var(--color-brand);
     outline-offset: 3px;
-    border-radius: 2px;
+    border-radius: 1px;
   }
 
   ::selection {
-    background: var(--color-brand-tint);
-    color: var(--color-ink);
+    background: var(--color-brand);
+    color: var(--color-paper);
   }
 }
 
@@ -91,58 +90,87 @@
   }
 }
 
-/* Type scale. Bold, tightly tracked sans headlines; Inter throughout. */
+/*
+ * Type scale. Display sizes use the semi-condensed width of Instrument Sans
+ * and tight tracking; text stays at normal width. Technical annotation is
+ * always IBM Plex Mono.
+ */
 @utility type-hero {
-  font-weight: 800;
-  font-size: clamp(2.5rem, 1.55rem + 3.9vw, 4.375rem);
-  line-height: 1.02;
-  letter-spacing: -0.035em;
+  font-stretch: 82%;
+  font-weight: 600;
+  font-size: clamp(3.25rem, 1rem + 6.2vw, 7.25rem);
+  line-height: 0.92;
+  letter-spacing: -0.032em;
 }
 
 @utility type-display {
-  font-weight: 800;
-  font-size: clamp(2.25rem, 1.6rem + 2.4vw, 3.5rem);
-  line-height: 1.06;
-  letter-spacing: -0.03em;
+  font-stretch: 85%;
+  font-weight: 600;
+  font-size: clamp(2.5rem, 1.3rem + 4vw, 5rem);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
 }
 
 @utility type-title {
-  font-weight: 750;
-  font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.375rem);
-  line-height: 1.12;
-  letter-spacing: -0.025em;
+  font-stretch: 88%;
+  font-weight: 600;
+  font-size: clamp(2rem, 1.25rem + 2.6vw, 3.5rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
 }
 
 @utility type-heading {
-  font-weight: 700;
-  font-size: 1.5rem;
-  line-height: 1.25;
+  font-stretch: 92%;
+  font-weight: 600;
+  font-size: clamp(1.375rem, 1.15rem + 0.7vw, 1.75rem);
+  line-height: 1.15;
   letter-spacing: -0.02em;
 }
 
 @utility type-subheading {
   font-weight: 600;
-  font-size: 1.1875rem;
+  font-size: 1.125rem;
   line-height: 1.35;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
 }
 
 @utility type-lead {
-  font-size: 1.1875rem;
-  line-height: 1.6;
+  font-size: clamp(1.1875rem, 1.05rem + 0.45vw, 1.4375rem);
+  line-height: 1.5;
+  letter-spacing: -0.01em;
   color: var(--color-ink-muted);
 }
 
+/* Small technical label: mono, uppercase, tracked. */
 @utility type-label {
+  font-family: var(--font-mono);
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-ink-subtle);
 }
 
+/* Mono annotation at reading size, for tools and specifications. */
+@utility type-mono {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
 @utility measure {
-  max-width: 68ch;
+  max-width: 64ch;
+}
+
+/* 12-column editorial grid. */
+@utility grid-editorial {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 1.25rem;
+  @media (width >= 64rem) {
+    column-gap: 2rem;
+  }
 }
 
 @utility text-link {
@@ -157,25 +185,24 @@
   }
 }
 
-/* Hairline grid used behind technical visuals. */
-@utility bg-grid {
-  background-image:
-    linear-gradient(to right, rgb(214 223 218 / 0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(214 223 218 / 0.045) 1px, transparent 1px);
-  background-size: 28px 28px;
-}
-
-@utility bg-grid-light {
-  background-image:
-    linear-gradient(to right, rgb(28 33 31 / 0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(28 33 31 / 0.045) 1px, transparent 1px);
-  background-size: 32px 32px;
+/* Link whose underline draws in from the left on hover. */
+@utility link-draw {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 350ms var(--ease-out-quint);
+  &:hover,
+  &:focus-visible {
+    background-size: 100% 1px;
+  }
 }
 
 /*
- * Scroll reveal: a short fade-and-rise as sections enter the viewport. Pure
+ * Scroll reveal: a short fade-and-rise as content enters the viewport. Pure
  * CSS (scroll-driven animations), so browsers without support, and visitors
- * who prefer reduced motion, simply see the content in place.
+ * who prefer reduced motion, simply see the content in place. Used only on
+ * content that starts below the first screen.
  */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
@@ -190,19 +217,14 @@
 @keyframes reveal {
   from {
     opacity: 0;
-    transform: translateY(1.25rem);
+    transform: translateY(1.5rem);
   }
 }
 
-/* Data packets travelling along the hero diagram's links. */
-@keyframes flow {
-  to {
-    stroke-dashoffset: -24;
-  }
-}
-
-@keyframes blink {
-  50% {
+/* The hero figure's layers settle into place once, on load. */
+@keyframes settle {
+  from {
     opacity: 0;
+    transform: translateY(-14px);
   }
 }

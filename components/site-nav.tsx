@@ -12,11 +12,11 @@ function isActive(pathname: string, href: string) {
 }
 
 /**
- * Primary navigation: inline links on wide screens, a disclosure menu on
- * small screens. The menu closes on Escape (returning focus to the toggle),
- * on outside click, and after a link is chosen.
+ * Primary navigation: inline links on wide screens; on small screens a
+ * full-height panel with large type. The panel closes on Escape (returning
+ * focus to the toggle), on outside click, and after a link is chosen.
  */
-export function SiteNav({ items, cta }: { items: NavItem[]; cta?: NavItem }) {
+export function SiteNav({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuId = useId();
@@ -44,8 +44,8 @@ export function SiteNav({ items, cta }: { items: NavItem[]; cta?: NavItem }) {
   }, [open]);
 
   return (
-    <nav aria-label="Primary" className="flex items-center gap-3">
-      <ul className="hidden items-center gap-1 md:flex lg:gap-2">
+    <nav aria-label="Primary">
+      <ul className="hidden items-center gap-9 md:flex">
         {items.map((item) => {
           const active = isActive(pathname, item.href);
           return (
@@ -54,9 +54,9 @@ export function SiteNav({ items, cta }: { items: NavItem[]; cta?: NavItem }) {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cx(
-                  "relative block rounded-md px-3 py-2 text-[0.9375rem] font-medium transition-colors",
-                  "after:absolute after:inset-x-3 after:-bottom-[0.6rem] after:h-0.5 after:rounded-full after:transition-colors",
-                  active ? "text-brand after:bg-brand" : "text-ink-muted after:bg-transparent hover:bg-paper-2 hover:text-ink",
+                  "relative py-2 text-[0.9375rem] font-medium transition-colors",
+                  "after:absolute after:inset-x-0 after:bottom-0.5 after:h-px after:origin-left after:bg-current after:transition-transform after:duration-300 after:ease-[var(--ease-out-quint)]",
+                  active ? "text-brand after:scale-x-100" : "text-ink-muted after:scale-x-0 hover:text-ink hover:after:scale-x-100",
                 )}
               >
                 {item.label}
@@ -65,65 +65,48 @@ export function SiteNav({ items, cta }: { items: NavItem[]; cta?: NavItem }) {
           );
         })}
       </ul>
-      {cta ? (
-        <Link
-          href={cta.href}
-          className="ml-3 hidden min-h-10 items-center rounded-lg bg-brand px-4 text-[0.9375rem] font-semibold text-paper shadow-[0_6px_16px_-8px_rgb(14_59_49/0.6)] transition-colors hover:bg-brand-hover lg:inline-flex"
-        >
-          {cta.label}
-        </Link>
-      ) : null}
 
       <button
         ref={toggleRef}
         type="button"
-        className="inline-flex size-11 items-center justify-center rounded-lg border border-field bg-white text-ink transition-colors hover:border-ink md:hidden"
+        className="type-label inline-flex min-h-11 items-center gap-2 border border-ink px-3.5 text-ink md:hidden"
+        aria-label={open ? "Close menu" : "Open menu"}
         aria-expanded={open}
         aria-controls={menuId}
         onClick={() => setOpen((value) => !value)}
       >
-        <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
-        <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
-          {open ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
-        </svg>
+        {open ? "Close" : "Menu"}
       </button>
 
       <div
         ref={panelRef}
         id={menuId}
         hidden={!open}
-        className="absolute inset-x-0 top-full border-b border-rule bg-paper shadow-[0_12px_24px_-12px_rgb(28_33_31/0.25)] md:hidden"
+        // Absolute, not fixed: the header's backdrop filter would make a fixed panel resolve against the header.
+        className="absolute inset-x-0 top-full z-40 h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-ink bg-paper md:hidden"
       >
-        <ul className="mx-auto flex max-w-[76rem] flex-col px-4 py-3 sm:px-6">
-          {items.map((item) => {
+        <ul className="flex flex-col px-5 pt-4 pb-10 sm:px-8">
+          {items.map((item, index) => {
             const active = isActive(pathname, item.href);
             return (
-              <li key={item.href} className="border-b border-rule last:border-b-0">
+              <li key={item.href} className="border-b border-rule">
                 <Link
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   onClick={() => setOpen(false)}
                   className={cx(
-                    "flex min-h-12 items-center text-base font-medium",
-                    active ? "text-brand" : "text-ink hover:text-brand",
+                    "flex items-baseline gap-4 py-4 text-[2.25rem] leading-tight font-semibold tracking-[-0.03em] [font-stretch:85%]",
+                    active ? "text-brand" : "text-ink",
                   )}
                 >
+                  <span aria-hidden="true" className="type-label w-6">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
                   {item.label}
                 </Link>
               </li>
             );
           })}
-          {cta ? (
-            <li className="pt-3 pb-1">
-              <Link
-                href={cta.href}
-                onClick={() => setOpen(false)}
-                className="flex min-h-12 items-center justify-center rounded-lg bg-brand text-base font-semibold text-paper hover:bg-brand-hover"
-              >
-                {cta.label}
-              </Link>
-            </li>
-          ) : null}
         </ul>
       </div>
     </nav>

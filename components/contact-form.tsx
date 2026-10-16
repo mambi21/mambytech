@@ -6,7 +6,7 @@ import { CONTACT_LIMITS, initialContactState, type ContactFieldName } from "@/li
 import { buttonClasses, cx } from "./ui";
 
 const inputClasses =
-  "mt-1.5 block w-full rounded-lg border bg-white px-3.5 py-2.5 text-base text-ink transition-colors hover:border-ink focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand";
+  "mt-2 block w-full rounded-none border bg-white px-3.5 py-2.5 text-base text-ink transition-colors hover:border-ink focus:border-brand focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand";
 
 const fieldLabels: Record<ContactFieldName, string> = { name: "Name", email: "Email", message: "Message" };
 

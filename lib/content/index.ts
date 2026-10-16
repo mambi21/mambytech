@@ -61,15 +61,25 @@ const allCertifications: Certification[] = certificationInputs.map((item, index)
   }
 });
 
-const isVisible = (item: { publication: "draft" | "published" }) => isPreview || item.publication === "published";
+const isVisible = (item: { publication: string }) => isPreview || item.publication === "published";
 
-/** Projects visible in this build: published ones, plus drafts in preview mode. */
+/** Projects with a case-study page in this build: published ones, plus every project in preview mode. */
 export function getProjects(): Project[] {
   return allProjects.filter(isVisible);
 }
 
+/** Projects shown in the work showcase: published and listed ones, plus drafts in preview mode. */
+export function getShowcaseProjects(): Project[] {
+  return allProjects.filter((project) => isPreview || project.publication !== "draft");
+}
+
 export function getFeaturedProjects(): Project[] {
-  return getProjects().filter((project) => project.featured);
+  return getShowcaseProjects().filter((project) => project.featured);
+}
+
+/** Whether a project has its own case-study page in this build. */
+export function hasCaseStudy(project: Project): boolean {
+  return isVisible(project);
 }
 
 export function getProject(slug: string): Project | undefined {
@@ -105,14 +115,14 @@ export function getCertifications(): Certification[] {
   return isPreview ? allCertifications : allCertifications.filter((item) => !containsOwnerInput(item));
 }
 
-/** Profile with unconfirmed skills removed outside preview mode. */
+/** Profile with unconfirmed tools (and areas left without any) removed outside preview mode. */
 export function getProfile(): Profile {
   if (isPreview) return profileData;
   return {
     ...profileData,
-    skillGroups: profileData.skillGroups
-      .map((group) => ({ ...group, items: group.items.filter((item) => item.confirmed) }))
-      .filter((group) => group.items.length > 0),
+    capabilities: profileData.capabilities
+      .map((area) => ({ ...area, tools: area.tools.filter((tool) => tool.confirmed) }))
+      .filter((area) => area.tools.length > 0),
   };
 }
 

@@ -101,40 +101,42 @@ async function main() {
       const close = page.getByRole("button", { name: "Close menu" });
       check((await close.getAttribute("aria-expanded")) === "true", "Enter opens the menu");
       await page.keyboard.press("Tab");
-      check((await page.evaluate(() => document.activeElement?.textContent)) === "Home", "Tab moves into the menu links");
+      check(
+        await page.evaluate(() => document.activeElement?.tagName === "A" && document.activeElement.textContent?.includes("Work")),
+        "Tab moves into the menu links",
+      );
       await page.keyboard.press("Escape");
       check((await toggle.getAttribute("aria-expanded")) === "false", "Escape closes the menu");
       check(await page.evaluate(() => document.activeElement?.getAttribute("aria-controls") !== null), "focus returns to the toggle");
       await toggle.click();
       await page.screenshot({ path: `screenshots/${MODE}-mobile-menu-open.png` });
-      await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Projects" }).click();
+      await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Work" }).click();
       await page.waitForURL("**/projects");
       check((await page.getByRole("button", { name: "Open menu" }).getAttribute("aria-expanded")) === "false", "menu closes after navigating");
       check(
-        (await page.getByRole("navigation", { name: "Primary" }).locator('[aria-current="page"]').first().textContent()) === "Projects",
+        (await page.getByRole("navigation", { name: "Primary" }).locator('[aria-current="page"]').first().textContent()) === "Work",
         "current page marked with aria-current",
       );
     }
     await context.close();
   }
 
-  // Desktop screen: the hero is short enough that the expertise cards start above the fold.
-  // Reduced motion: the terminal cursor only blinks when motion is allowed.
+  // Desktop screen: the headline and the hero figure share the first screen.
+  // Reduced motion: the hero figure's layers only animate in when motion is allowed.
   {
     console.log("\nHero and motion");
     for (const reducedMotion of ["no-preference", "reduce"] as const) {
       const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion });
       const page = await context.newPage();
       await page.goto(BASE + "/", { waitUntil: "networkidle" });
-      const cursor = page.locator("figure pre span.bg-term-prompt");
-      const animation = await cursor.evaluate((el) => getComputedStyle(el).animationName);
+      const layer = page.locator('figure g[class*="group/plate"]').first();
+      const animation = await layer.evaluate((el) => getComputedStyle(el).animationName);
       if (reducedMotion === "reduce") {
-        check(animation === "none", `terminal cursor is static with reduced motion (${animation})`);
+        check(animation === "none", `hero figure is static with reduced motion (${animation})`);
       } else {
-        const banner = MODE === "preview" ? 40 : 0;
-        const top = await page.locator('section[aria-labelledby="expertise-heading"] li').first().evaluate((el) => el.getBoundingClientRect().top);
-        check(top - banner < 900 - 40, `expertise cards start above the fold at 1440x900 (at ${Math.round(top)}px)`);
-        check(animation !== "none", `terminal cursor blinks when motion is allowed (${animation})`);
+        const top = await page.locator("figure").first().evaluate((el) => el.getBoundingClientRect().top);
+        check(top < 900 / 2, `hero figure starts in the first screen at 1440x900 (at ${Math.round(top)}px)`);
+        check(animation !== "none", `hero figure animates in when motion is allowed (${animation})`);
         await page.screenshot({ path: `screenshots/${MODE}-laptop-fold.png` });
       }
       await context.close();
@@ -150,7 +152,10 @@ async function main() {
     check((await page.locator("h1").textContent()) === "Page not found", "helpful not-found page");
     if (MODE === "production") {
       const draft = await page.goto(BASE + "/projects/glomaf");
-      check(draft?.status() === 404, "draft project is not published in production");
+      check(draft?.status() === 404, "listed project has no case-study page in production");
+      await page.goto(BASE + "/");
+      check(await page.getByRole("heading", { name: "Glomaf Marketplace" }).isVisible(), "listed projects appear in the showcase");
+      check((await page.getByRole("link", { name: /Read the case study/ }).count()) === 0, "no case-study links for unpublished projects");
       check((await page.goto(BASE + "/blog/rhel-production-patching"))?.status() === 404, "draft post is not published in production");
       check((await page.goto(BASE + "/blog"))?.status() === 404, "blog is hidden while no post is published");
       check((await page.goto(BASE + "/experience"))?.status() === 404, "experience is hidden while every entry needs input");
