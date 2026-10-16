@@ -856,132 +856,177 @@ function Box({ x, y, w, h, label, logo }: { x: number; y: number; w: number; h: 
   );
 }
 
+function Note({ x, y, children, anchor = "start", size = 10 }: { x: number; y: number; children: string; anchor?: "start" | "middle" | "end"; size?: number }) {
+  return (
+    <Halo x={x} y={y} anchor={anchor} size={size} weight={400} fill={subtle} mono>
+      {children.toUpperCase()}
+    </Halo>
+  );
+}
+
 function PipelineWide() {
   const a = "url(#cicd-arrow-w)";
   return (
-    <svg viewBox="0 0 1000 650" className="block h-auto w-full" fill="none">
+    <svg viewBox="0 0 1100 780" className="block h-auto w-full" fill="none">
       <defs>
         <Arrowhead id="cicd-arrow-w" color={ink} />
       </defs>
 
-      {/* Groups */}
-      <Box x={264} y={40} w={716} h={210} label="Jenkins pipeline" logo="jenkins" />
-      <Group kind="cloud" x={420} y={300} w={560} h={186} label="AWS Cloud" />
-      <Box x={420} y={520} w={560} h={116} label="Monitoring" />
-      <Box x={20} y={300} w={360} h={186} label="Infrastructure as code" />
+      {/* Lanes */}
+      <Box x={264} y={40} w={816} h={206} label="Continuous integration · Jenkins" logo="jenkins" />
+      <Box x={264} y={290} w={816} h={252} label="Continuous delivery · Jenkins" logo="jenkins" />
+      <Box x={280} y={330} w={250} h={160} label="Staging" />
+      <Box x={800} y={330} w={262} h={160} label="Production" />
+      <Box x={800} y={590} w={280} h={150} label="Monitoring" />
+      <Box x={20} y={590} w={740} h={176} label="Infrastructure pipeline · Terraform" logo="terraform" />
 
-      {/* Flow */}
+      {/* Main path */}
       <g stroke={ink} strokeWidth="1.4">
         <path d="M84 130H148" markerEnd={a} />
         <path d="M208 130H298" markerEnd={a} />
-        <path d="M358 130H458" markerEnd={a} />
-        <path d="M518 130H618" markerEnd={a} />
-        <path d="M678 130H778" markerEnd={a} />
-        <path d="M810 202V272H900V352" markerEnd={a} />
-        <path d="M650 202V284H530V352" markerEnd={a} />
-        <path d="M876 380H728" markerEnd={a} />
-        <path d="M624 578H786" markerEnd={a} />
+        <path d="M358 130H448" markerEnd={a} />
+        <path d="M508 130H598" markerEnd={a} />
+        <path d="M658 130H748" markerEnd={a} />
+        <path d="M808 130H918" markerEnd={a} />
+        <path d="M950 210V262H500V326" markerEnd={a} />
+        <path d="M530 410H568" markerEnd={a} />
+        <path d="M630 410H700" markerEnd={a} />
+        <path d="M760 410H796" markerEnd={a} />
+        <path d="M886 664H982" markerEnd={a} />
+        <path d="M138 664H240" markerEnd={a} />
+        <path d="M300 664H400" markerEnd={a} />
+        <path d="M430 636V548" markerEnd={a} />
       </g>
       <g stroke={ink} strokeWidth="1.2" strokeDasharray="5 4">
-        <path d="M490 102V66H180V100" markerEnd={a} />
-        <path d="M530 436V500H586V548" markerEnd={a} />
-        <path d="M700 436V500H614V548" markerEnd={a} />
-        <path d="M380 393H414" markerEnd={a} />
+        <path d="M480 102V64H180V100" markerEnd={a} />
+        <path d="M866 470V636" markerEnd={a} />
+        <path d="M1012 636V496" markerEnd={a} />
+        <path d="M460 664H574" markerEnd={a} />
       </g>
 
-      {/* Nodes */}
+      {/* CI */}
       <Icon name="client" x={56} y={130} size={48} lines={["Developer"]} />
-      <Halo x={56} y={186} size={10} weight={400} fill={subtle} mono>
-        PUSH · PR
-      </Halo>
+      <Note x={56} y={186} anchor="middle">
+        push · PR
+      </Note>
       <Tile logo="github" x={180} y={130} lines={["GitHub"]} />
-      <Tile logo="jenkins" x={330} y={130} lines={["Build & test"]} sub="Jenkins" />
-      <Tile logo="sonarqubeserver" x={490} y={130} lines={["Quality gate"]} sub="SonarQube" />
-      <Tile logo="sonatype" x={650} y={130} lines={["Publish artifact"]} sub="Nexus" />
-      <Tile logo="docker" x={810} y={130} lines={["Build image"]} sub="Docker" />
+      <Tile logo="jenkins" x={330} y={130} lines={["Build & unit test"]} sub="Jenkins" />
+      <Tile logo="sonarqubeserver" x={480} y={130} lines={["Quality gate"]} sub="SonarQube" />
+      <Tile logo="sonatype" x={630} y={130} lines={["Publish artifact"]} sub="Nexus" />
+      <Tile logo="docker" x={780} y={130} lines={["Build image"]} sub="Docker" />
+      <Icon name="ecr" x={950} y={130} size={52} lines={["Amazon ECR"]} />
+      <Note x={950} y={190} anchor="middle">
+        scan on push
+      </Note>
+      <Note x={234} y={120} anchor="middle">
+        webhook
+      </Note>
+      <Note x={490} y={60}>
+        gate fails → build stops, status to GitHub
+      </Note>
+      <Note x={282} y={232}>
+        PRs run steps 2–3 · main runs everything · one build, tagged with the commit SHA
+      </Note>
 
-      <Icon name="ec2" x={530} y={380} size={48} lines={["Amazon EC2"]} />
-      <Icon name="eks" x={700} y={380} size={48} lines={["Amazon EKS"]} />
-      <Icon name="ecr" x={900} y={380} size={48} lines={["Amazon ECR"]} />
+      {/* CD */}
+      <Note x={516} y={284}>
+        promote the same build
+      </Note>
+      <Icon name="eks" x={345} y={410} size={44} lines={["EKS"]} labelSize={11.5} />
+      <Icon name="ec2" x={465} y={410} size={44} lines={["EC2"]} labelSize={11.5} />
+      <Tile logo="jenkins" x={600} y={410} lines={["Smoke &", "integration tests"]} labelSize={11.5} />
+      <Icon name="users" x={730} y={410} size={44} lines={["Approval"]} labelSize={11.5} />
+      <Note x={730} y={466} anchor="middle" size={9.5}>
+        Jenkins input
+      </Note>
+      <Icon name="eks" x={866} y={410} size={44} lines={["EKS"]} labelSize={11.5} />
+      <Icon name="ec2" x={996} y={410} size={44} lines={["EC2"]} labelSize={11.5} />
+      <Note x={931} y={478} anchor="middle">
+        rolling deploy
+      </Note>
+      <Icon name="iam" x={302} y={516} size={28} />
+      <Note x={324} y={520}>
+        Jenkins uses IAM roles · no stored keys
+      </Note>
 
-      <Tile logo="prometheus" x={600} y={578} lines={["Prometheus"]} labelSize={11.5} />
-      <Tile logo="grafana" x={812} y={578} lines={["Grafana"]} labelSize={11.5} />
+      {/* Monitoring */}
+      <Tile logo="prometheus" x={866} y={664} lines={["Prometheus"]} labelSize={11.5} />
+      <Tile logo="grafana" x={1012} y={664} lines={["Grafana"]} labelSize={11.5} />
+      <Note x={856} y={572} anchor="end">
+        metrics
+      </Note>
+      <Note x={1024} y={572}>
+        rollback
+      </Note>
 
-      <Tile logo="terraform" x={92} y={386} lines={["Terraform"]} />
-      <Halo x={150} y={376} anchor="start" size={11} weight={400} fill={subtle} mono>
-        PROVISIONS VPC, EKS,
-      </Halo>
-      <Halo x={150} y={392} anchor="start" size={11} weight={400} fill={subtle} mono>
-        EC2 AND NETWORKING
-      </Halo>
+      {/* Infrastructure */}
+      <Tile logo="terraform" x={110} y={664} lines={["Plan"]} sub="on pull request" labelSize={11.5} />
+      <Icon name="users" x={270} y={664} size={44} lines={["Approval"]} labelSize={11.5} />
+      <Tile logo="terraform" x={430} y={664} lines={["Apply"]} labelSize={11.5} />
+      <Icon name="s3" x={606} y={664} size={44} lines={["Remote state"]} labelSize={11.5} />
+      <Note x={606} y={724} anchor="middle" size={9.5}>
+        Amazon S3
+      </Note>
+      <Note x={442} y={600}>
+        provisions staging & production
+      </Note>
 
-      {/* Edge labels */}
-      <Halo x={234} y={120} size={10} weight={400} fill={subtle} mono>
-        WEBHOOK
-      </Halo>
-      <Halo x={500} y={60} anchor="start" size={10} weight={400} fill={subtle} mono>
-        GATE FAILS → BUILD STOPS, STATUS TO GITHUB
-      </Halo>
-      <Halo x={830} y={266} anchor="start" size={10} weight={400} fill={subtle} mono>
-        PUSH IMAGE
-      </Halo>
-      <Halo x={548} y={278} anchor="start" size={10} weight={400} fill={subtle} mono>
-        DEPLOY ARTIFACT
-      </Halo>
-      <Halo x={802} y={372} size={10} weight={400} fill={subtle} mono halo={paper}>
-        PULL IMAGE
-      </Halo>
-      <Halo x={636} y={516} size={10} weight={400} fill={subtle} mono>
-        METRICS
-      </Halo>
-
-      <Badge x={120} y={112} n={1} />
+      <Badge x={118} y={112} n={1} />
       <Badge x={234} y={98} n={2} />
-      <Badge x={408} y={112} n={3} />
-      <Badge x={568} y={112} n={4} />
-      <Badge x={728} y={112} n={5} />
-      <Badge x={810} y={240} n={6} />
-      <Badge x={650} y={240} n={7} />
-      <Badge x={700} y={470} n={8} />
+      <Badge x={403} y={112} n={3} />
+      <Badge x={553} y={112} n={4} />
+      <Badge x={703} y={112} n={5} />
+      <Badge x={863} y={112} n={6} />
+      <Badge x={720} y={262} n={7} />
+      <Badge x={549} y={392} n={8} />
+      <Badge x={665} y={392} n={9} />
+      <Badge x={778} y={392} n={10} />
+      <Badge x={866} y={556} n={11} />
     </svg>
   );
 }
 
 function PipelineCompact() {
   const a = "url(#cicd-arrow-c)";
-  const stages = [
-    { logo: "jenkins", name: "Build & test", tool: "Jenkins", y: 182 },
-    { logo: "sonarqubeserver", name: "Quality gate", tool: "SonarQube", y: 280 },
-    { logo: "sonatype", name: "Publish artifact", tool: "Nexus", y: 378 },
-    { logo: "docker", name: "Build image", tool: "Docker", y: 476 },
+  const ci = [
+    { logo: "jenkins", name: "Build & unit test", tool: "Jenkins", y: 176 },
+    { logo: "sonarqubeserver", name: "Quality gate", tool: "SonarQube", y: 274 },
+    { logo: "sonatype", name: "Publish artifact", tool: "Nexus", y: 372 },
+    { logo: "docker", name: "Build image", tool: "Docker", y: 470 },
   ];
   return (
-    <svg viewBox="0 0 400 1084" className="block h-auto w-full" fill="none">
+    <svg viewBox="0 0 400 1740" className="block h-auto w-full" fill="none">
       <defs>
         <Arrowhead id="cicd-arrow-c" color={ink} />
       </defs>
 
-      <Box x={16} y={112} w={368} h={432} label="Jenkins pipeline" logo="jenkins" />
-      <Group kind="cloud" x={16} y={600} w={368} h={176} label="AWS Cloud" size={11} icon={20} />
-      <Box x={16} y={808} w={368} h={124} label="Monitoring" />
-      <Box x={16} y={964} w={368} h={108} label="Infrastructure as code" />
+      <Box x={16} y={108} w={368} h={560} label="Continuous integration" logo="jenkins" />
+      <Box x={16} y={720} w={368} h={560} label="Continuous delivery" logo="jenkins" />
+      <Box x={32} y={760} w={336} h={124} label="Staging" />
+      <Box x={32} y={1094} w={336} h={124} label="Production" />
+      <Box x={16} y={1320} w={368} h={124} label="Monitoring" />
+      <Box x={16} y={1480} w={368} h={248} label="Infrastructure · Terraform" logo="terraform" />
 
       <g stroke={ink} strokeWidth="1.3">
         <path d="M138 44H252" markerEnd={a} />
-        <path d="M290 70V144H110V152" markerEnd={a} />
-        {stages.slice(0, -1).map((stage, i) => (
-          <path key={stage.y} d={`M110 ${stage.y + 26}V${stages[i + 1].y - 30}`} markerEnd={a} />
+        <path d="M290 70V140H110V146" markerEnd={a} />
+        {ci.map((stage, i) => (
+          <path key={stage.y} d={`M110 ${stage.y + 26}V${(ci[i + 1]?.y ?? 568) - 30}`} markerEnd={a} />
         ))}
-        <path d="M110 502V570H320V646" markerEnd={a} />
-        <path d="M84 378H44V580H80V646" markerEnd={a} />
-        <path d="M296 672H226" markerEnd={a} />
-        <path d="M144 870H256" markerEnd={a} />
+        <path d="M110 596V700H200V756" markerEnd={a} />
+        <path d="M200 884V922" markerEnd={a} />
+        <path d="M200 978V1012" markerEnd={a} />
+        <path d="M200 1064V1090" markerEnd={a} />
+        <path d="M144 1382H256" markerEnd={a} />
+        <path d="M110 1560H170" markerEnd={a} />
+        <path d="M230 1560H290" markerEnd={a} />
       </g>
       <g stroke={ink} strokeWidth="1.1" strokeDasharray="4 4">
-        <path d="M84 280H28V44H84" markerEnd={a} />
-        <path d="M80 720V790H106V840" markerEnd={a} />
-        <path d="M200 720V790H126V840" markerEnd={a} />
-        <path d="M8 1018V688H14" markerEnd={a} />
+        <path d="M84 274H28V44H84" markerEnd={a} />
+        <path d="M110 1218V1352" markerEnd={a} />
+        <path d="M284 1352V1222" markerEnd={a} />
+        <path d="M320 1590V1630H230" markerEnd={a} />
+        <path d="M392 1520V1000H388" markerEnd={a} />
       </g>
 
       <Icon name="client" x={110} y={44} size={40} />
@@ -993,35 +1038,76 @@ function PipelineCompact() {
         GitHub
       </Halo>
 
-      {stages.map((stage, i) => (
+      {ci.map((stage, i) => (
         <g key={stage.name}>
           <Tile logo={stage.logo} x={110} y={stage.y} size={52} />
           <Halo x={152} y={stage.y - 2} anchor="start" size={15}>
             {`0${i + 2}  ${stage.name}`}
           </Halo>
-          <Halo x={152} y={stage.y + 15} anchor="start" size={10} weight={400} fill={subtle} mono>
-            {stage.tool.toUpperCase()}
-          </Halo>
+          <Note x={152} y={stage.y + 15} size={9.5}>
+            {stage.tool}
+          </Note>
         </g>
       ))}
-      <Halo x={36} y={268} anchor="start" size={9.5} weight={400} fill={subtle} mono>
-        FAIL
+      <Icon name="ecr" x={110} y={570} size={48} />
+      <Halo x={152} y={568} anchor="start" size={15}>
+        06  Push image
       </Halo>
+      <Note x={152} y={585} size={9.5}>
+        Amazon ECR · scan on push
+      </Note>
+      <Note x={36} y={262} size={9}>
+        fail
+      </Note>
+      <Note x={32} y={650} size={9}>
+        one build · tagged with the commit SHA
+      </Note>
 
-      <Icon name="ec2" x={80} y={672} size={40} lines={["EC2"]} labelSize={11} />
-      <Icon name="eks" x={200} y={672} size={40} lines={["EKS"]} labelSize={11} />
-      <Icon name="ecr" x={320} y={672} size={40} lines={["ECR"]} labelSize={11} />
-
-      <Tile logo="prometheus" x={116} y={870} size={48} lines={["Prometheus"]} labelSize={11} />
-      <Tile logo="grafana" x={284} y={870} size={48} lines={["Grafana"]} labelSize={11} />
-
-      <Tile logo="terraform" x={76} y={1022} size={48} />
-      <Halo x={116} y={1016} anchor="start" size={14}>
-        Terraform
+      <Note x={210} y={716} size={9}>
+        07 promote
+      </Note>
+      <Icon name="eks" x={140} y={822} size={36} lines={["EKS"]} labelSize={10.5} />
+      <Icon name="ec2" x={260} y={822} size={36} lines={["EC2"]} labelSize={10.5} />
+      <Tile logo="jenkins" x={110} y={950} size={48} />
+      <Halo x={150} y={948} anchor="start" size={15}>
+        08  Smoke tests
       </Halo>
-      <Halo x={116} y={1032} anchor="start" size={9.5} weight={400} fill={subtle} mono>
-        PROVISIONS VPC, EKS, EC2
+      <Note x={150} y={964} size={9.5}>
+        integration checks
+      </Note>
+      <Icon name="users" x={110} y={1040} size={40} />
+      <Halo x={150} y={1038} anchor="start" size={15}>
+        09  Approval
       </Halo>
+      <Note x={150} y={1054} size={9.5}>
+        Jenkins input
+      </Note>
+      <Icon name="eks" x={140} y={1156} size={36} lines={["EKS"]} labelSize={10.5} />
+      <Icon name="ec2" x={260} y={1156} size={36} lines={["EC2"]} labelSize={10.5} />
+      <Note x={200} y={1244} anchor="middle" size={9.5}>
+        10 rolling deploy
+      </Note>
+      <Icon name="iam" x={46} y={1264} size={22} />
+      <Note x={64} y={1268} size={9}>
+        IAM roles · no stored keys
+      </Note>
+
+      <Tile logo="prometheus" x={116} y={1382} size={44} lines={["Prometheus"]} labelSize={10.5} />
+      <Tile logo="grafana" x={284} y={1382} size={44} lines={["Grafana"]} labelSize={10.5} />
+      <Note x={120} y={1300} size={9}>
+        11 metrics
+      </Note>
+      <Note x={276} y={1300} anchor="end" size={9}>
+        rollback
+      </Note>
+
+      <Tile logo="terraform" x={80} y={1560} size={48} lines={["Plan"]} labelSize={10.5} />
+      <Icon name="users" x={200} y={1560} size={40} lines={["Approval"]} labelSize={10.5} />
+      <Tile logo="terraform" x={320} y={1560} size={48} lines={["Apply"]} labelSize={10.5} />
+      <Icon name="s3" x={200} y={1650} size={40} lines={["Remote state · S3"]} labelSize={10.5} />
+      <Note x={372} y={1500} anchor="end" size={9}>
+        provisions environments ↑
+      </Note>
     </svg>
   );
 }
@@ -1033,16 +1119,18 @@ export function PipelineFigure({ number, className }: { number: string; classNam
       className={className}
       caption={
         <>
-          Pipeline design: (1) a push or pull request triggers Jenkins through a GitHub webhook; (2) build and unit tests;
-          (3) SonarQube quality gate, which stops the build and reports to GitHub on failure; (4) the versioned artifact is
-          published to Nexus; (5) a Docker image is built and (6) pushed to Amazon ECR; (7) EC2 receives the artifact and
-          Amazon EKS pulls the image; (8) Prometheus collects metrics for Grafana. Terraform provisions the AWS
-          infrastructure. Logos: Simple Icons; AWS icons: AWS Architecture Icons.
+          Pipeline design. CI: (1) a push or pull request triggers Jenkins by (2) GitHub webhook; (3) build and unit tests;
+          (4) SonarQube quality gate, reporting failures to GitHub; (5) the versioned artifact goes to Nexus; (6) the Docker
+          image is pushed to Amazon ECR and scanned. Pull requests stop after the gate. CD: (7) the same build, tagged with
+          the commit SHA, deploys to staging on EKS and EC2; (8) smoke and integration tests; (9) manual approval;
+          (10) rolling deployment to production; (11) Prometheus and Grafana watch it, and failed health checks trigger a
+          rollback. Terraform runs its own plan, approval, apply pipeline with remote state in Amazon S3. Logos: Simple
+          Icons; AWS icons: AWS Architecture Icons.
         </>
       }
     >
       <Responsive
-        label="CI/CD pipeline diagram. A developer pushes to GitHub, which triggers a Jenkins pipeline by webhook. Jenkins builds and tests the code, runs a SonarQube quality gate (a failure stops the build and reports back to GitHub), publishes the artifact to Nexus, and builds a Docker image that is pushed to Amazon ECR. The Nexus artifact is deployed to Amazon EC2 and Amazon EKS pulls the image from ECR. Prometheus collects metrics from EC2 and EKS for Grafana dashboards. Terraform provisions the VPC, EKS, EC2 and networking."
+        label="CI/CD pipeline design. Continuous integration in Jenkins: a developer's push or pull request reaches GitHub, which triggers Jenkins by webhook; Jenkins builds and runs unit tests, runs a SonarQube quality gate that reports failures back to GitHub, publishes the versioned artifact to Nexus, builds a Docker image and pushes it to Amazon ECR, where it is scanned. Pull requests stop after the quality gate. Continuous delivery in Jenkins: the same build, tagged with the commit SHA, deploys to a staging environment on Amazon EKS and EC2, passes smoke and integration tests and a manual approval, then rolls out to production on EKS and EC2. Jenkins uses IAM roles rather than stored keys. Prometheus collects production metrics for Grafana, and failed health checks trigger a rollback. A separate Terraform pipeline plans on pull request, waits for approval, and applies, keeping remote state in Amazon S3; it provisions the staging and production environments."
         wide={<PipelineWide />}
         compact={<PipelineCompact />}
       />
