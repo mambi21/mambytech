@@ -8,9 +8,30 @@ const profile: ProfileInput = {
   name: "Ibrahima Mamby Bah",
   brand: "MambyTech",
   role: "Cloud Infrastructure & Linux Engineer",
-  headline: "Cloud infrastructure. Linux systems. Reliable delivery.",
+  eyebrow: "Cloud Engineering · Technology · Leadership",
+  headline: "Engineering the Cloud.",
+  headlineAccent: "Building What’s Next.",
   introduction:
-    "I'm Ibrahima Mamby Bah, a Cloud Infrastructure and Linux Engineer working with enterprise Linux systems, AWS infrastructure, and automation.",
+    "Engineer at Amazon Web Services. Co-Founder & CTO of Glomaf. Working across cloud infrastructure, Linux, DevOps, security, and platform engineering to build reliable technology that makes an impact.",
+  specialties: ["Cloud Infrastructure", "DevOps Engineering", "Linux Engineering", "DevSecOps", "Platform Engineering"],
+  journey: [
+    {
+      symbol: "☁️",
+      kicker: "Engineering",
+      title: "Engineer at AWS",
+      text: "Engineering & Building the Infrastructure Behind Amazon Web Services.",
+      organization: "Amazon Web Services",
+      tone: "green",
+    },
+    {
+      symbol: "🚀",
+      kicker: "Entrepreneurship",
+      title: "Co-Founder & CTO",
+      text: "Leading the technology, product development, and engineering vision at Glomaf.",
+      organization: "Glomaf",
+      tone: "gold",
+    },
+  ],
   links: {
     github: undefined,
     linkedin: LINKEDIN_PROFILE_URL ? { label: "LinkedIn", href: LINKEDIN_PROFILE_URL } : undefined,

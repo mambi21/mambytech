@@ -103,9 +103,28 @@ export const profileSchema = z.object({
   brand: text,
   /** Professional title, e.g. "Cloud Infrastructure & Linux Engineer". */
   role: text,
-  /** The home page's opening statement. */
+  /** Small uppercase line above the home page headline. */
+  eyebrow: text,
+  /** The home page headline: the first line, then a second line set in the accent colour. */
   headline: text,
+  headlineAccent: text,
   introduction: text,
+  /** Specialties shown as pills under the introduction. */
+  specialties: z.array(text).min(1),
+  /** The "professional journey" cards on the home page. */
+  journey: z
+    .array(
+      z.object({
+        /** A single emoji shown at the top of the card (decorative). */
+        symbol: text,
+        kicker: text,
+        title: text,
+        text,
+        organization: text,
+        tone: z.enum(["green", "gold"]),
+      }),
+    )
+    .default([]),
   /** Optional portrait for the About page. Leave undefined until you add a photo to /public. */
   portrait: mediaSchema.optional(),
   /** Optional public links. Leave undefined until confirmed; unset links are hidden. */
