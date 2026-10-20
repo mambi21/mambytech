@@ -6,7 +6,7 @@ const socialImage = {
   url: "/opengraph-image",
   width: 1200,
   height: 630,
-  alt: "Ibrahima Mamby Bah — MambyTech: Building Infrastructure. Engineering Solutions.",
+  alt: "Ibrahima Mamby Bah — MambyTech: Cloud infrastructure. Linux systems. Reliable delivery.",
 };
 
 /** Per-page metadata with a canonical URL and matching social metadata. */

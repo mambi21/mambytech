@@ -5,7 +5,7 @@ import { getProfile } from "@/lib/content";
 import { getPrimaryNav } from "@/lib/navigation";
 import { isPreview } from "@/lib/preview";
 import { SiteNav } from "./site-nav";
-import { ArrowLink, Container } from "./ui";
+import { Container } from "./ui";
 
 export function SkipLink() {
   return (
@@ -50,55 +50,39 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   const profile = getProfile();
-  const social = Object.values(profile.links).filter((link) => link !== undefined);
+  const linkedin = profile.links.linkedin;
   const year = new Date().getFullYear();
   const nav = [{ href: "/", label: "Home" }, ...getPrimaryNav(), { href: "/privacy", label: "Privacy" }];
 
   return (
     <footer className="mt-auto border-t border-ink bg-paper-2">
-      <Container className="grid-editorial gap-y-10 py-14">
-        <div className="col-span-12 md:col-span-5">
+      <Container className="flex flex-col gap-8 py-10 md:flex-row md:items-start md:justify-between">
+        <div>
           <Logo className="h-7 w-auto" />
-          <p className="mt-5 max-w-sm text-[0.9375rem] text-ink-muted">
-            {profile.name}, {profile.role}. {profile.tagline}
+          <p className="mt-4 text-[0.9375rem] text-ink-muted">
+            {profile.name} · {profile.role}
           </p>
-          <ArrowLink href="/contact" className="mt-6 text-[0.9375rem]">
-            Get in touch
-          </ArrowLink>
+          {linkedin ? (
+            <a href={linkedin.href} rel="me noopener noreferrer" target="_blank" className="link-draw mt-3 inline-flex min-h-11 items-center gap-1.5 font-semibold text-brand">
+              LinkedIn <span aria-hidden="true">↗</span>
+              <span className="sr-only"> (opens in a new tab)</span>
+            </a>
+          ) : null}
         </div>
-        <nav aria-label="Footer" className="col-span-6 md:col-span-3 md:col-start-7">
-          <h2 className="type-label">Index</h2>
-          <ul className="mt-4 space-y-1.5 text-[0.9375rem]">
+        <nav aria-label="Footer">
+          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[0.9375rem]">
             {nav.map((item) => (
               <li key={item.href}>
-                <Link href={item.href} className="link-draw text-ink-muted hover:text-ink">
+                <Link href={item.href} className="link-draw inline-flex min-h-11 items-center text-ink-muted hover:text-ink">
                   {item.label}
                 </Link>
               </li>
             ))}
           </ul>
         </nav>
-        <div className="col-span-6 md:col-span-3">
-          {social.length > 0 ? (
-            <>
-              <h2 className="type-label">Elsewhere</h2>
-              <ul className="mt-4 mb-8 space-y-1.5 text-[0.9375rem]">
-                {social.map((link) => (
-                  <li key={link.href}>
-                    <a href={link.href} rel="me noopener noreferrer" className="link-draw text-ink-muted hover:text-ink">
-                      {link.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </>
-          ) : null}
-          <h2 className="type-label">Colophon</h2>
-          <p className="type-mono mt-4 text-[0.8125rem] text-ink-muted">
-            Set in Instrument Sans and IBM Plex Mono. Built with Next.js, hosted on Cloudflare.
-          </p>
-        </div>
-        <p className="type-label col-span-12 border-t border-rule pt-6">
+      </Container>
+      <Container className="pb-8">
+        <p className="type-label border-t border-rule pt-6">
           © {year} {profile.name} · {profile.brand}
         </p>
       </Container>

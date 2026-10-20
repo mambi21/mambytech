@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import awsProject from "@/content/projects/aws-infrastructure";
 import { containsOwnerInput, listOwnerInput, needs, splitOwnerInput } from "@/lib/content/owner-input";
-import { certificationSchema, experienceSchema, projectSchema, writingSchema } from "@/lib/content/schema";
+import { linkedinProfileUrlSchema, projectSchema } from "@/lib/content/schema";
 
 describe("owner-input markers", () => {
   it("round-trips markers through split and list", () => {
@@ -13,85 +13,28 @@ describe("owner-input markers", () => {
 });
 
 describe("project schema", () => {
-  it("accepts the draft projects", () => {
+  it("accepts the published projects", () => {
     expect(projectSchema.safeParse(awsProject).success).toBe(true);
   });
 
   it("refuses to publish a project that still needs owner input", () => {
-    const result = projectSchema.safeParse({ ...awsProject, publication: "published" });
+    const result = projectSchema.safeParse({ ...awsProject, contribution: needs("what I did") });
     expect(result.success).toBe(false);
     expect(result.error?.issues.map((i) => i.message).join(" ")).toMatch(/owner-input markers/);
   });
 
-  it("publishes complete projects and rejects insecure links", () => {
-    const complete = {
-      ...awsProject,
-      summary: "A summary.",
-      problemSummary: "The problem.",
-      contributionSummary: "What I did.",
-      technologies: ["AWS"],
-      status: "completed",
-      publication: "published",
-      ownerChecklist: [],
-      caseStudy: {
-        problem: "p",
-        role: "r",
-        architecture: { summary: "a" },
-        implementation: ["i"],
-        tradeoffs: [{ decision: "d", rationale: "r" }],
-        verification: ["v"],
-        outcomes: ["o"],
-        lessons: ["l"],
-      },
-    };
-    expect(projectSchema.safeParse(complete).success).toBe(true);
-    const insecure = { ...complete, links: [{ label: "Repo", href: "http://example.com", kind: "repository" }] };
+  it("allows placeholders in drafts and rejects insecure links", () => {
+    expect(projectSchema.safeParse({ ...awsProject, publication: "draft", contribution: needs("what I did") }).success).toBe(true);
+    const insecure = { ...awsProject, links: [{ label: "Repo", href: "http://example.com", kind: "repository" }] };
     expect(projectSchema.safeParse(insecure).success).toBe(false);
   });
 });
 
-describe("writing schema", () => {
-  const post = {
-    slug: "a-post",
-    title: "A post",
-    summary: "Summary.",
-    category: "Linux",
-    publication: "published",
-    body: [{ type: "paragraph", text: "Body." }],
-  };
-
-  it("needs a real publication date once published", () => {
-    expect(writingSchema.safeParse(post).success).toBe(false);
-    expect(writingSchema.safeParse({ ...post, publishedOn: "2026-10-01" }).success).toBe(true);
-    expect(writingSchema.safeParse({ ...post, publication: "draft" }).success).toBe(true);
-  });
-
-  it("refuses to publish a post that still needs owner input", () => {
-    const draft = { ...post, publishedOn: "2026-10-01", body: [{ type: "paragraph", text: needs("write this") }] };
-    expect(writingSchema.safeParse(draft).success).toBe(false);
-  });
-});
-
-describe("experience and certifications", () => {
-  it("accepts month dates, present, and owner-input markers", () => {
-    const entry = { organization: "Org", role: "Engineer", start: "2024-03", end: "present", summary: "Did things." };
-    expect(experienceSchema.safeParse(entry).success).toBe(true);
-    expect(experienceSchema.safeParse({ ...entry, role: needs("title") }).success).toBe(true);
-  });
-
-  it("requires https verification links", () => {
-    const cert = { name: "Cert", abbreviation: "C", issuer: "Issuer" };
-    expect(certificationSchema.safeParse(cert).success).toBe(true);
-    expect(certificationSchema.safeParse({ ...cert, verifyUrl: "http://example.com" }).success).toBe(false);
-  });
-});
-
-describe("listed projects", () => {
-  it("can be listed with a pending case study, but not with placeholders in what they show", () => {
-    expect(projectSchema.safeParse({ ...awsProject, publication: "listed" }).success).toBe(true);
-    const leaky = { ...awsProject, publication: "listed", technologies: ["AWS", needs("the rest")] };
-    const result = projectSchema.safeParse(leaky);
-    expect(result.success).toBe(false);
-    expect(result.error?.issues.map((i) => i.message).join(" ")).toMatch(/Listed projects/);
+describe("LinkedIn profile URL", () => {
+  it("accepts a direct https profile link only", () => {
+    expect(linkedinProfileUrlSchema.safeParse("https://www.linkedin.com/in/ibrahima-bah-52a079203/").success).toBe(true);
+    expect(linkedinProfileUrlSchema.safeParse("http://www.linkedin.com/in/someone/").success).toBe(false);
+    expect(linkedinProfileUrlSchema.safeParse("https://www.linkedin.com/company/someone/").success).toBe(false);
+    expect(linkedinProfileUrlSchema.safeParse("https://linkedin.example.com/in/someone/").success).toBe(false);
   });
 });

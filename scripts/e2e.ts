@@ -3,11 +3,12 @@
  * Microsoft Edge (no browser download needed).
  *
  *   BASE_URL=http://localhost:3000 E2E_MODE=production npm run e2e
- *   BASE_URL=http://localhost:3001 E2E_MODE=preview npm run e2e   # dev:preview with CONTACT_PROVIDER=mock
+ *   BASE_URL=http://localhost:3001 E2E_MODE=preview npm run e2e   # dev:preview
  *
  * Checks: page structure and metadata, axe-core WCAG 2.2 AA rules, horizontal
- * overflow at phone width, skip link, mobile menu keyboard behaviour, and (in
- * preview) every contact-form state. Screenshots go to ./screenshots.
+ * overflow at phone width, skip link, mobile menu keyboard behaviour, the
+ * full-size diagram viewer, and the LinkedIn contact link. Screenshots go to
+ * ./screenshots.
  */
 import { mkdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -15,6 +16,7 @@ import { chromium, type Page } from "playwright-core";
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
 const MODE = (process.env.E2E_MODE ?? "production") as "production" | "preview";
+const LINKEDIN = "https://www.linkedin.com/in/ibrahima-bah-52a079203/";
 const require = createRequire(import.meta.url);
 const axeSource = readFileSync(require.resolve("axe-core/axe.min.js"), "utf8");
 
@@ -27,10 +29,7 @@ const check = (condition: unknown, message: string) => {
   }
 };
 
-const pages = ["/", "/about", "/projects", "/contact", "/privacy"];
-if (MODE === "preview") {
-  pages.push("/projects/aws-infrastructure", "/projects/linux-automation", "/projects/cicd-pipeline", "/projects/glomaf", "/blog", "/blog/rhel-production-patching");
-}
+const pages = ["/", "/projects", "/about", "/contact", "/privacy"];
 
 async function axe(page: Page) {
   await page.addScriptTag({ content: axeSource });
@@ -91,6 +90,20 @@ async function main() {
     await page.keyboard.press("Enter");
     check(await page.evaluate(() => document.activeElement?.id === "main"), "skip link moves focus to main");
 
+    // Full-size diagram viewer: opens as a modal, can be panned, closes with Escape and restores focus.
+    await page.goto(BASE + "/", { waitUntil: "networkidle" });
+    const viewer = page.getByRole("button", { name: "View full size" }).first();
+    await viewer.click();
+    const dialog = page.locator("dialog[open]");
+    check(await dialog.isVisible(), "diagram viewer opens");
+    const pane = await dialog.locator('[aria-label="Diagram, scrollable"]').evaluate((el) => el.scrollWidth - el.clientWidth);
+    check(label === "desktop" || pane > 0, `diagram viewer pans on small screens (${pane}px)`);
+    const dialogViolations = await axe(page);
+    check(dialogViolations.length === 0, `diagram viewer axe: ${dialogViolations.join(" | ") || "no violations"}`);
+    await page.keyboard.press("Escape");
+    check((await page.locator("dialog[open]").count()) === 0, "Escape closes the viewer");
+    check(await page.evaluate(() => document.activeElement?.textContent?.trim() === "View full size"), "focus returns to the viewer button");
+
     if (label === "mobile") {
       await page.goto(BASE + "/");
       const toggle = page.getByRole("button", { name: "Open menu" });
@@ -102,7 +115,7 @@ async function main() {
       check((await close.getAttribute("aria-expanded")) === "true", "Enter opens the menu");
       await page.keyboard.press("Tab");
       check(
-        await page.evaluate(() => document.activeElement?.tagName === "A" && document.activeElement.textContent?.includes("Work")),
+        await page.evaluate(() => document.activeElement?.tagName === "A" && document.activeElement.textContent?.includes("Projects")),
         "Tab moves into the menu links",
       );
       await page.keyboard.press("Escape");
@@ -110,136 +123,49 @@ async function main() {
       check(await page.evaluate(() => document.activeElement?.getAttribute("aria-controls") !== null), "focus returns to the toggle");
       await toggle.click();
       await page.screenshot({ path: `screenshots/${MODE}-mobile-menu-open.png` });
-      await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Work" }).click();
+      await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Projects" }).click();
       await page.waitForURL("**/projects");
       check((await page.getByRole("button", { name: "Open menu" }).getAttribute("aria-expanded")) === "false", "menu closes after navigating");
       check(
-        (await page.getByRole("navigation", { name: "Primary" }).locator('[aria-current="page"]').first().textContent()) === "Work",
+        (await page.getByRole("navigation", { name: "Primary" }).locator('[aria-current="page"]').first().textContent()) === "Projects",
         "current page marked with aria-current",
       );
     }
     await context.close();
   }
 
-  // Desktop screen: the headline and the hero figure share the first screen.
-  // Reduced motion: the hero figure's layers only animate in when motion is allowed.
-  {
-    console.log("\nHero and motion");
-    for (const reducedMotion of ["no-preference", "reduce"] as const) {
-      const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion });
-      const page = await context.newPage();
-      await page.goto(BASE + "/", { waitUntil: "networkidle" });
-      const layer = page.locator('figure g[class*="group/plate"]').first();
-      const animation = await layer.evaluate((el) => getComputedStyle(el).animationName);
-      if (reducedMotion === "reduce") {
-        check(animation === "none", `hero figure is static with reduced motion (${animation})`);
-      } else {
-        const top = await page.locator("figure").first().evaluate((el) => el.getBoundingClientRect().top);
-        check(top < 900 / 2, `hero figure starts in the first screen at 1440x900 (at ${Math.round(top)}px)`);
-        check(animation !== "none", `hero figure animates in when motion is allowed (${animation})`);
-        await page.screenshot({ path: `screenshots/${MODE}-laptop-fold.png` });
-      }
-      await context.close();
-    }
-  }
-
-  // Not-found page.
+  // Content and links.
   {
     const page = await browser.newPage();
-    const response = await page.goto(BASE + "/projects/does-not-exist");
-    console.log("\nNot found");
-    check(response?.status() === 404, "unknown project returns 404");
-    check((await page.locator("h1").textContent()) === "Page not found", "helpful not-found page");
-    if (MODE === "production") {
-      const draft = await page.goto(BASE + "/projects/glomaf");
-      check(draft?.status() === 404, "listed project has no case-study page in production");
-      await page.goto(BASE + "/");
-      check(await page.getByRole("heading", { name: "Glomaf Marketplace" }).isVisible(), "listed projects appear in the showcase");
-      check((await page.getByRole("link", { name: /Read the case study/ }).count()) === 0, "no case-study links for unpublished projects");
-      check((await page.goto(BASE + "/blog/rhel-production-patching"))?.status() === 404, "draft post is not published in production");
-      check((await page.goto(BASE + "/blog"))?.status() === 404, "blog is hidden while no post is published");
-      check((await page.goto(BASE + "/experience"))?.status() === 404, "no experience page (timeline intentionally empty)");
-      const sitemap = await (await page.goto(BASE + "/sitemap.xml"))?.text();
-      check(sitemap && !sitemap.includes("/projects/glomaf"), "sitemap excludes drafts");
-      await page.goto(BASE + "/contact");
-      check(await page.getByText("The contact form isn’t available yet").isVisible(), "contact shows honest unavailable state without credentials");
-      check((await page.locator("form").count()) === 0, "no form is offered when delivery is unavailable");
+    console.log("\nContent");
+    await page.goto(BASE + "/contact");
+    const linkedin = page.getByRole("link", { name: /Connect on LinkedIn/ });
+    check((await linkedin.getAttribute("href")) === LINKEDIN, "contact links to the LinkedIn profile");
+    check((await linkedin.getAttribute("target")) === "_blank" && (await linkedin.getAttribute("rel"))?.includes("noopener"), "LinkedIn opens safely in a new tab");
+    check((await page.locator("form").count()) === 0, "no contact form");
+
+    await page.goto(BASE + "/projects");
+    for (const title of ["AWS Three-Tier Infrastructure", "Linux Operations & Automation", "CI/CD Pipeline: GitOps to EKS", "Glomaf Marketplace"]) {
+      check(await page.getByRole("heading", { name: title }).isVisible(), `projects page shows "${title}"`);
     }
+    const body = (await page.locator("main").textContent()) ?? "";
+    check(!/case study|in preparation|RHCSA/i.test(body), "no case-study placeholders or certification mentions");
+    check(await page.getByText("Pipeline steps").isVisible(), "pipeline steps disclosure present");
+
+    const notFound = await page.goto(BASE + "/projects/does-not-exist");
+    check(notFound?.status() === 404, "unknown page returns 404");
+    check((await page.locator("h1").textContent()) === "Page not found", "helpful not-found page");
+    for (const gone of ["/projects/glomaf", "/blog", "/experience"]) {
+      check((await page.goto(BASE + gone))?.status() === 404, `${gone} is not a page`);
+    }
+    const sitemap = (await (await page.goto(BASE + "/sitemap.xml"))?.text()) ?? "";
+    check(MODE === "preview" || ["/projects", "/about", "/contact"].every((p) => sitemap.includes(p)), "sitemap lists the pages");
     await page.close();
   }
-
-  if (MODE === "preview") await contactFlow(browser);
 
   await browser.close();
   console.log(failures.length ? `\n${failures.length} check(s) failed.` : "\nAll checks passed.");
   process.exit(failures.length ? 1 : 0);
-}
-
-async function contactFlow(browser: Awaited<ReturnType<typeof chromium.launch>>) {
-  console.log("\nContact form (mock provider)");
-  const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
-  await page.goto(BASE + "/contact", { waitUntil: "networkidle" });
-  const send = page.getByRole("button", { name: "Send message" });
-
-  // Validation errors.
-  await page.waitForTimeout(3200);
-  await page.getByLabel("Email", { exact: true }).fill("not-an-email");
-  await page.getByLabel("Message", { exact: true }).fill("short");
-  await send.click();
-  const alert = page.locator("form [role=alert]");
-  await alert.waitFor();
-  check((await alert.textContent())?.includes("Please fix the highlighted fields"), "validation summary shown");
-  check(await page.evaluate(() => document.activeElement?.getAttribute("role") === "alert"), "focus moves to the error summary");
-  check((await page.getByLabel("Name", { exact: true }).getAttribute("aria-invalid")) === "true", "name marked aria-invalid");
-  check((await page.getByLabel("Email", { exact: true }).getAttribute("aria-describedby"))?.includes("email-error"), "email error linked via aria-describedby");
-  check((await page.getByLabel("Email", { exact: true }).inputValue()) === "not-an-email", "entered values are preserved");
-  const violations = await axe(page);
-  check(violations.length === 0, `contact error state axe: ${violations.join(" | ") || "no violations"}`);
-  await page.screenshot({ path: "screenshots/preview-contact-errors.png", fullPage: true });
-
-  // Error links move focus to the field.
-  await page.getByRole("link", { name: /^Email:/ }).click();
-  check(await page.evaluate(() => document.activeElement?.id === "contact-email"), "error summary link focuses the field");
-
-  // Pending then success.
-  await page.getByLabel("Name", { exact: true }).fill("Test Visitor");
-  await page.getByLabel("Email", { exact: true }).fill("visitor@example.com");
-  await page.getByLabel("Message", { exact: true }).fill("Hello! This is an automated test message from the e2e script.");
-  await page.waitForTimeout(3200);
-  await send.click();
-  check(await page.getByRole("button", { name: "Sending…" }).isVisible(), "pending state shown while sending");
-  await page.getByRole("heading", { name: "Message sent" }).waitFor();
-  check(true, "success state shown after provider accepts");
-  check(await page.evaluate(() => document.activeElement?.getAttribute("role") === "status"), "focus moves to success message");
-  await page.screenshot({ path: "screenshots/preview-contact-success.png" });
-
-  // Too-fast submission (spam timing check).
-  await page.goto(BASE + "/contact", { waitUntil: "networkidle" });
-  await page.waitForFunction(() => (document.querySelector('input[name="startedAt"]') as HTMLInputElement | null)?.value);
-  await page.getByLabel("Name", { exact: true }).fill("Fast Bot");
-  await page.getByLabel("Email", { exact: true }).fill("bot@example.com");
-  await page.getByLabel("Message", { exact: true }).fill("This was submitted immediately after load.");
-  await page.getByRole("button", { name: "Send message" }).click();
-  await page.locator("form [role=alert]").waitFor();
-  check((await page.locator("form [role=alert]").textContent())?.includes("quicker than expected"), "too-fast submission rejected with guidance");
-
-  // Rate limit (5 accepted per window; one already succeeded above).
-  let limited = false;
-  for (let i = 0; i < 6 && !limited; i++) {
-    await page.goto(BASE + "/contact", { waitUntil: "networkidle" });
-    await page.waitForTimeout(3100);
-    await page.getByLabel("Name", { exact: true }).fill("Repeat Visitor");
-    await page.getByLabel("Email", { exact: true }).fill("repeat@example.com");
-    await page.getByLabel("Message", { exact: true }).fill("Repeated message to exercise the rate limiter.");
-    await page.getByRole("button", { name: "Send message" }).click();
-    await Promise.race([
-      page.getByRole("heading", { name: "Message sent" }).waitFor(),
-      page.locator("form [role=alert]").waitFor(),
-    ]);
-    limited = (await page.locator("form [role=alert]").count()) > 0 && ((await page.locator("form [role=alert]").textContent()) ?? "").includes("Too many messages");
-  }
-  check(limited, "rate limit triggers after repeated submissions");
-  await page.close();
 }
 
 main().catch((error) => {

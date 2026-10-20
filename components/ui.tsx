@@ -12,46 +12,6 @@ export function Container({ className, children }: { className?: string; childre
   return <div className={cx("mx-auto w-full max-w-[88rem] px-5 sm:px-8 lg:px-12", className)}>{children}</div>;
 }
 
-/** Mono technical label. */
-export function Label({ children, className, as: Tag = "p" }: { children: ReactNode; className?: string; as?: "p" | "span" | "dt" | "h2" | "h3" }) {
-  return <Tag className={cx("type-label", className)}>{children}</Tag>;
-}
-
-/**
- * Numbered section opening: a full-width hairline, the section number and
- * name in mono, and the section title set large on the editorial grid.
- */
-export function SectionHead({
-  id,
-  index,
-  label,
-  title,
-  aside,
-  tone = "light",
-}: {
-  id: string;
-  index?: string;
-  label: string;
-  title: ReactNode;
-  aside?: ReactNode;
-  tone?: "light" | "dark";
-}) {
-  const dark = tone === "dark";
-  return (
-    <div className={cx("grid-editorial border-t pt-5", dark ? "border-term-line" : "border-ink")}>
-      <p className={cx("type-label col-span-12 md:col-span-3", dark && "text-term-dim")}>
-        {index ? <span className={dark ? "text-term-prompt" : "text-brand"}>{index}</span> : null}
-        {index ? <span aria-hidden="true"> — </span> : null}
-        {label}
-      </p>
-      <h2 id={id} className={cx("type-display col-span-12 mt-6 text-balance md:col-span-9 md:mt-0", dark && "text-white")}>
-        {title}
-      </h2>
-      {aside ? <div className="col-span-12 mt-6 md:col-span-9 md:col-start-4">{aside}</div> : null}
-    </div>
-  );
-}
-
 /** Interior page opening: mono label, large title, optional lead, on the editorial grid. */
 export function PageHeader({ label, title, children }: { label: string; title: ReactNode; children?: ReactNode }) {
   return (

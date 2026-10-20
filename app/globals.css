@@ -197,34 +197,3 @@
     background-size: 100% 1px;
   }
 }
-
-/*
- * Scroll reveal: a short fade-and-rise as content enters the viewport. Pure
- * CSS (scroll-driven animations), so browsers without support, and visitors
- * who prefer reduced motion, simply see the content in place. Used only on
- * content that starts below the first screen.
- */
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .reveal {
-      animation: reveal linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 30%;
-    }
-  }
-}
-
-@keyframes reveal {
-  from {
-    opacity: 0;
-    transform: translateY(1.5rem);
-  }
-}
-
-/* The hero figure's layers settle into place once, on load. */
-@keyframes settle {
-  from {
-    opacity: 0;
-    transform: translateY(-14px);
-  }
-}
